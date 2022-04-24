@@ -22,38 +22,52 @@
     <div class="catalog-catalog">
       <h1 class="catalog-text1">Каталог</h1>
       <div class="catalog-container4">
-        <div class="game-card-feature-card game-card-root-class-name">
-          <img
-            alt="image"
-            src="{{ url_for("static", filename="img/empty-300w.jpg") }}"
-            class="game-card-image"
-          />
-          <h2 class="game-card-text"><span>Game name</span></h2>
-        </div>
-        <div class="game-card-feature-card game-card-root-class-name1">
-          <img
-            alt="image"
-            src="{{ url_for("static", filename="img/empty-300w.jpg") }}"
-            class="game-card-image"
-          />
-          <h2 class="game-card-text"><span>Game name</span></h2>
-        </div>
-        <div class="game-card-feature-card game-card-root-class-name2">
-          <img
-            alt="image"
-            src="{{ url_for("static", filename="img/empty-300w.jpg") }}"
-            class="game-card-image"
-          />
-          <h2 class="game-card-text"><span>Game name</span></h2>
-        </div>
-        <div class="game-card-feature-card game-card-root-class-name3">
-          <img
-            alt="image"
-            src="{{ url_for("static", filename="img/empty-300w.jpg") }}"
-            class="game-card-image"
-          />
-          <h2 class="game-card-text"><span>Game name</span></h2>
-        </div>
+        {% for game in games %}
+            <div class="game-card-feature-card game-card-root-class-name">
+                <div class="game-card-text"><span>{{ game.appid }}</span></div>
+                <a href="{{ url_for("game_page", appid=game.appid, appname=game.name) }}">
+                    <img
+                        alt="image"
+                        src="{{ url_for("static", filename="img/empty-300w.jpg") }}"
+                        class="game-card-image"
+                    />
+                </a>
+                <div class="game-card-text"><span>{{ game.name }}</span></div>
+            </div>
+        {% endfor %}
+{##}
+{#        <div class="game-card-feature-card game-card-root-class-name">#}
+{#          <img#}
+{#            alt="image"#}
+{#            src="{{ url_for("static", filename="img/empty-300w.jpg") }}"#}
+{#            class="game-card-image"#}
+{#          />#}
+{#          <h2 class="game-card-text"><span>Game name</span></h2>#}
+{#        </div>#}
+{#        <div class="game-card-feature-card game-card-root-class-name1">#}
+{#          <img#}
+{#            alt="image"#}
+{#            src="{{ url_for("static", filename="img/empty-300w.jpg") }}"#}
+{#            class="game-card-image"#}
+{#          />#}
+{#          <h2 class="game-card-text"><span>Game name</span></h2>#}
+{#        </div>#}
+{#        <div class="game-card-feature-card game-card-root-class-name2">#}
+{#          <img#}
+{#            alt="image"#}
+{#            src="{{ url_for("static", filename="img/empty-300w.jpg") }}"#}
+{#            class="game-card-image"#}
+{#          />#}
+{#          <h2 class="game-card-text"><span>Game name</span></h2>#}
+{#        </div>#}
+{#        <div class="game-card-feature-card game-card-root-class-name3">#}
+{#          <img#}
+{#            alt="image"#}
+{#            src="{{ url_for("static", filename="img/empty-300w.jpg") }}"#}
+{#            class="game-card-image"#}
+{#          />#}
+{#          <h2 class="game-card-text"><span>Game name</span></h2>#}
+{#        </div>#}
       </div>
     </div>
 {% endblock %}

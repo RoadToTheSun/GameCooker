@@ -4,18 +4,18 @@
 
 {% block body_content %}
     <div class="game-page-container3">
-              <img
-                alt="image"
-                src="https://play.teleporthq.io/static/svg/default-img.svg"
-                class="game-page-image1"
-              />
-              <video
-                src
-                poster="https://play.teleporthq.io/static/svg/videoposter.svg"
-                class="game-page-video"
-              ></video>
-            </div>
-    <h1 class="game-page-text1">Game name</h1>
+      <img
+        alt="image"
+        src="https://play.teleporthq.io/static/svg/default-img.svg"
+        class="game-page-image1"
+      />
+      <video
+        src
+        poster="https://play.teleporthq.io/static/svg/videoposter.svg"
+        class="game-page-video"
+      ></video>
+    </div>
+    <h1 class="game-page-text1">{{ appname }}</h1>
     <ul class="game-page-ul list">
       <li class="game-page-li list-item">
         <span class="game-page-text2">Adventure</span>
@@ -43,7 +43,7 @@
       </svg>
     </button>
     <iframe
-      src="https://store.steampowered.com/widget/275850/"
+      src="https://store.steampowered.com/widget/{{ appid }}/"
       class="game-page-iframe"
     ></iframe>
 {% endblock %}
