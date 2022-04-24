@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Helper{% endblock %}
+
+{% block body_content %}
+    <h1 class="helper-text1">
+      Выберете жанр, количество игроков и стоимость игры
+    </h1>
+    <div class="helper-container3">
+      <button class="helper-button1 button">Adventure</button>
+      <button class="helper-button2 button">FPS</button>
+      <button class="helper-button3 button">MOBA</button>
+      <button class="helper-button4 button">RPG</button>
+      <button class="helper-button5 button">Racing</button>
+      <button class="helper-button6 button">Strategy</button>
+    </div>
+    <div class="helper-container4">
+      <div class="helper-container5">
+        <span class="helper-text2">Игроки</span>
+        <select class="helper-select">
+          <option value="2" selected>2</option>
+          <option value="3">3</option>
+          <option value="4+">4+</option>
+        </select>
+      </div>
+      <div class="helper-container6">
+        <span class="helper-text3">Стоимость</span>
+        <select class="helper-select1">
+          <option value="free" selected>Бесплатная</option>
+          <option value="cost">Платная</option>
+        </select>
+      </div>
+    </div>
+{% endblock %}
