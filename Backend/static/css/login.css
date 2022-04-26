@@ -109,6 +109,12 @@
   justify-content: space-between;
   background-color: #7D8BF5;
 }
+.login-navlink {
+  display: contents;
+}
+.login-text {
+  text-decoration: none;
+}
 .login-container1 {
   flex: 0 0 auto;
   display: flex;
@@ -127,11 +133,12 @@
   flex-direction: row;
   justify-content: space-between;
 }
-.login-button {
+.login-navlink1 {
   transition: 0.3s;
   border-color: var(--dl-color-gray-700);
+  text-decoration: none;
 }
-.login-button:hover {
+.login-navlink1:hover {
   color: #ffffff;
   font-style: normal;
   font-weight: 700;
@@ -221,7 +228,7 @@
   border-color: var(--dl-color-gray-700);
   margin-right: 40px;
 }
-.login-button1 {
+.login-button {
   flex: 1;
   align-self: flex-start;
   margin-top: var(--dl-space-space-twounits);
@@ -231,13 +238,13 @@
   margin-right: 109px;
   margin-bottom: var(--dl-space-space-twounits);
 }
-.login-button1:hover {
+.login-button:hover {
   color: #ffffff;
   font-style: normal;
   font-weight: 700;
   background-color: var(--dl-color-my-2);
 }
-.login-text2 {
+.login-navlink2 {
   left: 0px;
   right: 0px;
   bottom: 0px;
@@ -248,9 +255,10 @@
   padding-top: var(--dl-space-space-halfunit);
   border-radius: var(--dl-radius-radius-radius8);
   padding-bottom: var(--dl-space-space-halfunit);
+  text-decoration: none;
   background-color: var(--dl-color-my-back);
 }
-.login-text2:hover {
+.login-navlink2:hover {
   box-shadow: 5px 5px 10px 0px rgba(0, 0, 0, 0.2);
   font-style: normal;
   font-weight: 700;
@@ -301,7 +309,7 @@
 .login-icon12:hover {
   fill: #ffffff;
 }
-.login-navlink {
+.login-navlink3 {
   display: contents;
 }
 .login-icon14 {
@@ -339,7 +347,7 @@
     padding-left: var(--dl-space-space-twounits);
     padding-right: var(--dl-space-space-twounits);
   }
-  .login-text3 {
+  .login-text2 {
     text-align: center;
     margin-left: var(--dl-space-space-unit);
     margin-right: var(--dl-space-space-unit);
@@ -356,7 +364,7 @@
     padding: var(--dl-space-space-unit);
     flex-direction: column;
   }
-  .login-text3 {
+  .login-text2 {
     margin-left: 0px;
     margin-right: 0px;
     margin-bottom: var(--dl-space-space-unit);

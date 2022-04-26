@@ -3,19 +3,19 @@
 {% block title %}Login{% endblock %}
 
 {% block body_content %}
-    <form class="login-form">
-          <h1 class="login-text1">Авторизация</h1>
-          <input
-            type="text"
-            placeholder="Логин"
-            class="login-textinput input"
-          />
-          <input
-            type="text"
-            placeholder="Пароль"
-            class="login-textinput1 input"
-          />
-          <button class="login-button1 button">Войти</button>
-          <span class="login-text2">Регистрация</span>
-        </form>
+<form class="login-form">
+  <h1 class="login-text1">Авторизация</h1>
+  <input
+    type="text"
+    placeholder="Логин"
+    class="login-textinput input"
+  />
+  <input
+    type="text"
+    placeholder="Пароль"
+    class="login-textinput1 input"
+  />
+  <button class="login-button button">Войти</button>
+  <a href="{{ url_for("registrate") }}" class="login-navlink2">Регистрация</a>
+</form>
 {% endblock %}

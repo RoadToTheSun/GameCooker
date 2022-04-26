@@ -109,6 +109,12 @@
   justify-content: space-between;
   background-color: #7D8BF5;
 }
+.registration-navlink {
+  display: contents;
+}
+.registration-text {
+  text-decoration: none;
+}
 .registration-container1 {
   flex: 0 0 auto;
   display: flex;
@@ -127,11 +133,12 @@
   flex-direction: row;
   justify-content: space-between;
 }
-.registration-button {
+.registration-navlink1 {
   transition: 0.3s;
   border-color: var(--dl-color-gray-700);
+  text-decoration: none;
 }
-.registration-button:hover {
+.registration-navlink1:hover {
   color: #ffffff;
   font-style: normal;
   font-weight: 700;
@@ -227,7 +234,7 @@
   border-color: var(--dl-color-gray-700);
   margin-right: 40px;
 }
-.registration-button1 {
+.registration-button {
   flex: 1;
   align-self: flex-start;
   margin-top: var(--dl-space-space-oneandhalfunits);
@@ -237,7 +244,7 @@
   margin-right: 85px;
   margin-bottom: var(--dl-space-space-oneandhalfunits);
 }
-.registration-button1:hover {
+.registration-button:hover {
   color: #ffffff;
   font-style: normal;
   font-weight: 700;
@@ -289,7 +296,7 @@
 .registration-icon12:hover {
   fill: #ffffff;
 }
-.registration-navlink {
+.registration-navlink2 {
   display: contents;
 }
 .registration-icon14 {

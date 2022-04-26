@@ -96,6 +96,7 @@
   box-shadow: 5px 5px 10px 0px rgba(18, 18, 18, 0.1);
   transition: 0.3s;
   align-items: flex-start;
+  border-radius: var(--dl-radius-radius-radius8);
   flex-direction: column;
   justify-content: flex-start;
 }
@@ -103,6 +104,10 @@
   transform: scale(1.02);
   box-shadow: 5px 5px 10px 0px rgba(0, 0, 0, 0.2);
 }
+.game-card-feature-card.is-hidden {
+  display: none !important;
+}
+
 .game-card-image {
   width: 250px;
   height: 300px;
@@ -112,9 +117,8 @@
 }
 .game-card-text {
   align-self: center;
-  /*margin-top: var(--dl-space-space-unit);*/
+  margin-top: var(--dl-space-space-unit);
   margin-bottom: 0px;
-  margin-top: 0px;
 }
 
 
@@ -147,6 +151,12 @@
   justify-content: space-between;
   background-color: #7D8BF5;
 }
+.catalog-navlink {
+  display: contents;
+}
+.catalog-text {
+  text-decoration: none;
+}
 .catalog-container1 {
   flex: 0 0 auto;
   display: flex;
@@ -165,11 +175,12 @@
   flex-direction: row;
   justify-content: space-between;
 }
-.catalog-button {
+.catalog-navlink1 {
   transition: 0.3s;
   border-color: var(--dl-color-gray-700);
+  text-decoration: none;
 }
-.catalog-button:hover {
+.catalog-navlink1:hover {
   color: #ffffff;
   font-style: normal;
   font-weight: 700;
@@ -250,6 +261,16 @@
   justify-content: flex-start;
   background-color: var(--dl-color-my-back);
 }
+.catalog-button {
+  transition: 0.3s;
+  border-width: 0px;
+  border-radius: 0px;
+  background-color: transparent;
+}
+.catalog-button:hover {
+  font-style: normal;
+  font-weight: 700;
+}
 .catalog-button1 {
   transition: 0.3s;
   border-width: 0px;
@@ -300,20 +321,15 @@
   font-style: normal;
   font-weight: 700;
 }
-.catalog-button6 {
-  transition: 0.3s;
-  border-width: 0px;
-  border-radius: 0px;
-  background-color: transparent;
-}
-.catalog-button6:hover {
-  font-style: normal;
-  font-weight: 700;
-}
-.catalog-button7 {
+.catalog-navlink2 {
   width: 379px;
   margin-top: var(--dl-space-space-twounits);
+  transition: 0.3s;
   border-color: var(--dl-color-gray-700);
+  text-decoration: none;
+}
+.catalog-navlink2:hover {
+  box-shadow: 5px 5px 10px 0px rgba(0, 0, 0, 0.2);
 }
 .catalog-catalog {
   width: 100%;
@@ -382,7 +398,7 @@
 .catalog-icon12:hover {
   fill: #ffffff;
 }
-.catalog-navlink {
+.catalog-navlink3 {
   display: contents;
 }
 .catalog-icon14 {

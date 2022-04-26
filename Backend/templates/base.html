@@ -53,13 +53,17 @@
     <link href="{{ url_for('static', filename='css/registration.css') }}" rel="stylesheet" />
     <link href="{{ url_for('static', filename='css/pass-change.css') }}" rel="stylesheet" />
     <link href="{{ url_for('static', filename='css/authors.css') }}" rel="stylesheet" />
+
+    <link rel="icon" href="../static/img/empty-300w.jpg">
+
+
   </head>
   <body>
   <div>
     <div class="home-container">
           <!--Header-->
           <header data-role="Header" class="home-header">
-              <a href="{{ url_for("index") }}">
+              <a href="{{ url_for("index") }}" class="home-navlink">
                   <h1>ИгроВарка</h1>
               </a>
               <div class="home-container01">
@@ -83,7 +87,7 @@
                   </div>
               </div>
               <div class="home-btn-group">
-                  <button class="home-button button">Вход</button>
+                  <a href="{{ url_for("login") }}" class="home-navlink1 button">Вход</a>
               </div>
               <div data-type="BurgerMenu" class="home-burger-menu">
                   <svg viewBox="0 0 1024 1024" class="home-icon">
@@ -203,5 +207,6 @@
           </footer>
       </div>
   </div>
+  <script async class="jsbin" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
   </body>
 </html>
