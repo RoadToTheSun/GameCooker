@@ -211,19 +211,36 @@
   align-items: flex-start;
   justify-content: center;
 }
-.game-page-image1 {
-  width: 270px;
-  height: 335px;
-  margin-top: 0px;
-  object-fit: cover;
+.movies-slider {
+  height: 330px;
+}
+.game-screenshots {
+  overflow-y: scroll;
+  height: inherit;
+  width: 564px;
   border-radius: var(--dl-radius-radius-radius8);
 }
-.game-page-video {
+.game-trailers {
+  overflow-y: scroll;
+  height: inherit;
   width: 564px;
-  height: 330px;
-  align-self: center;
   margin-left: var(--dl-space-space-fourunits);
   border-radius: var(--dl-radius-radius-radius8);
+}
+.game-page-image1 {
+  display: inline-block;
+  width: auto;
+  height: inherit;
+  margin-top: 0px;
+  object-fit: cover;
+  /*border-radius: var(--dl-radius-radius-radius8);*/
+}
+.game-page-video {
+  width: auto;
+  height: inherit;
+  align-self: center;
+  /*margin-left: var(--dl-space-space-fourunits);*/
+  /*border-radius: var(--dl-radius-radius-radius8);*/
 }
 .game-page-text1 {
   margin-top: var(--dl-space-space-unit);

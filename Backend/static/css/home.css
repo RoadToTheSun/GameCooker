@@ -95,7 +95,13 @@
   align-items: center;
   flex-direction: column;
   justify-content: flex-start;
-  background-color: #C8CDF7;
+  /*background-color: #C8CDF7;*/
+  background-image:
+          url(../../static/img/star-bg.svg),
+          linear-gradient(to bottom, var(--dl-color-my-1), var(--dl-color-my-2) 100%)
+  ;
+  background-position: center;
+  background-repeat: repeat-x;
 }
 .home-header {
   width: 100%;

@@ -271,55 +271,11 @@
   font-style: normal;
   font-weight: 700;
 }
-.catalog-button1 {
-  transition: 0.3s;
-  border-width: 0px;
-  border-radius: 0px;
-  background-color: transparent;
-}
-.catalog-button1:hover {
+.catalog-button.is-pressed {
+  color: #ffffff;
   font-style: normal;
   font-weight: 700;
-}
-.catalog-button2 {
-  transition: 0.3s;
-  border-width: 0px;
-  border-radius: 0px;
-  background-color: transparent;
-}
-.catalog-button2:hover {
-  font-style: normal;
-  font-weight: 700;
-}
-.catalog-button3 {
-  transition: 0.3s;
-  border-width: 0px;
-  border-radius: 0px;
-  background-color: transparent;
-}
-.catalog-button3:hover {
-  font-style: normal;
-  font-weight: 700;
-}
-.catalog-button4 {
-  transition: 0.3s;
-  border-width: 0px;
-  border-radius: 0px;
-  background-color: transparent;
-}
-.catalog-button4:hover {
-  font-style: normal;
-  font-weight: 700;
-}
-.catalog-button5 {
-  transition: 0.3s;
-  border-width: 0px;
-  border-radius: 0px;
-  background-color: transparent;
-}
-.catalog-button5:hover {
-  font-style: normal;
-  font-weight: 700;
+  background-color: #636ec2;
 }
 .catalog-navlink2 {
   width: 379px;

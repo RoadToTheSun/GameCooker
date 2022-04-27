@@ -2,15 +2,17 @@ import os
 import json, requests
 
 import steam.webapi
+from requests import Response
 from steam import steamid, webauth, webapi
 
 import logging
 from steam.steamid import SteamID
 from steam.webapi import WebAPI, WebAPIInterface, WebAPIMethod
 from bs4 import BeautifulSoup
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, Markup
 from flask_restful import Api, Resource, abort, reqparse
 from flasgger import Swagger, swag_from
+from typing import List
 
 steam_web_api_key: str
 with open("C:/STUDYING/VI/Технологии программирования/steam_key.txt") as path:
@@ -43,7 +45,8 @@ def test(language):
     return jsonify(language=language)
 
 
-def request_steam_web_api(interface, method, base_url="https://api.steampowered.com", *version, **parameters) -> dict:
+def request_steam_web_api(interface, method, base_url="api.steampowered.com", version="v001",
+                          parameters: dict = None) -> dict:
     """How to Make a Steam Web API Request:
 
     Request URL format:
@@ -57,6 +60,11 @@ def request_steam_web_api(interface, method, base_url="https://api.steampowered.
     :param parameters: :optional: Parameters are delimited by the & character
     :return: Python dictionary object of response
     """
+
+    # Already available from webapi module
+    # response = webapi.webapi_request(f"https://{base_url}/{interface}/{method}/{version}", 'GET', params=parameters)
+    if not parameters:
+        parameters = {'format': 'json'}
     response = requests.get(f"https://{base_url}/{interface}/{method}/{version}", parameters)
     response_dict = json.loads(response.text)
     return response_dict
@@ -65,6 +73,17 @@ def request_steam_web_api(interface, method, base_url="https://api.steampowered.
 @app.route('/apilist')
 def getSupportedAPIList():
     response = steam_api.call('ISteamWebAPIUtil.GetSupportedAPIList')
+    interfaces: list = steam_api.interfaces
+    logging.info(', '.join([str(i.doc()) for i in interfaces]))
+    # logging.info([[method.name for method in interface.__iter__()] for interface in interfaces])
+    # response = request_steam_web_api("ISteamWebAPIUtil", "GetSupportedAPIList")
+    return jsonify(response)
+
+
+@app.route('/apps', methods=['GET'])
+# @swag_from('home.yml')
+def getAppsFromStoreService():
+    response = steam_api.call('IStoreService.GetAppList')
     return jsonify(response)
 
 
@@ -86,21 +105,26 @@ def catalog():
     games = response['applist']['apps']
     games = [games[_index] for _index in range(len(games)) if games[_index]["name"]
              and (games[_index]["appid"] in apps)
-    ]
+             ]
     # games = json.dumps()
     return render_template('catalog.html', games=games, secret_key=app.secret_key)
 
 
-@app.route('/game/<int:appid>&<string:appname>', methods=['GET'])
+@app.route('/game/<int:appid>', methods=['GET'])
 # @swag_from('game.yml')
-def game_page(appid, appname):
-    page = f"https://store.steampowered.com/api/appdetails/?appids={appid}"
-    soup = BeautifulSoup(requests.get(page).text, features="html.parser")
-    # print(soup.find("movies").getText('\n'))
-    print(page)
-    print(soup.text)
-    game_data = json.loads(soup.text)[appid]['data']
-    return render_template('game-page.html', appid=appid, appname=game_data['name'], secret_key=app.secret_key)
+def game_page(appid):
+    url = f"https://store.steampowered.com/api/appdetails/?appids={appid}&key={steam_web_api_key}&l=ru"
+    response: dict = webapi.webapi_request(url)
+    game_data_dict = response[f'{appid}']['data']
+    logging.info("Movies: \n" + json.dumps(game_data_dict, indent=2))
+    game_screenshots = game_data_dict['screenshots']
+    game_trailers = game_data_dict['movies']
+    sd = Markup(game_data_dict['short_description'])
+    dd = Markup(game_data_dict['detailed_description'])
+    # from boltons import strutils
+    # sd = strutils.html2text(game_data_dict['short_description'])
+    # dd = strutils.html2text(game_data_dict['detailed_description'])
+    return render_template('game-page.html', game=game_data_dict, sd=sd, dd=dd)
 
 
 @app.route('/helper', methods=['GET'])

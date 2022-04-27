@@ -3,48 +3,59 @@
 {% block title %}Game{% endblock %}
 
 {% block body_content %}
-    <div class="game-page-container3">
-      <img
-        alt="image"
-        src="https://play.teleporthq.io/static/svg/default-img.svg"
-        class="game-page-image1"
-      />
-      <video
-        poster="https://cdn.akamai.steamstatic.com/steam/apps/81613/movie.293x165.jpg?t=1452903069"
-        class="game-page-video"
-        controls="controls"
-      >
-      <source
-              src="https://cdn.akamai.steamstatic.com/steam/apps/81613/movie480.webm?t=1452903069"
-              type='video/webm; codecs="vp8, vorbis"'
-      >
-      </video>
-
-{#        <video#}
-{#                id="movie_81613"#}
-{#                playsinline="true"#}
-{#                class="game-page-video"#}
-{#                poster="https://cdn.akamai.steamstatic.com/steam/apps/81613/movie.293x165.jpg?t=1452903069"#}
-{#                preload="none"#}
-{#                src="https://cdn.akamai.steamstatic.com/steam/apps/81613/movie480.webm?t=1452903069"#}
-{#                data-hd-src="https://cdn.akamai.steamstatic.com/steam/apps/81613/movie_max.webm?t=1452903069"#}
-{#                data-video="0">#}
-{##}
-{#        </video>#}
+    <div class="game-page-container3 movies-slider">
+        <div class="game-screenshots">
+        {% for screen in game.screenshots %}
+            <img
+                    alt="image"
+                    src="{{ screen.path_thumbnail }}"
+                    class="game-page-image1"
+            />
+        {% endfor %}
+        </div>
+        <div class="game-trailers">
+        {% for trailer in game.movies %}
+            {% if trailer.highlight%}
+                <video
+                {#          poster="https://cdn.akamai.steamstatic.com/steam/apps/81613/movie.293x165.jpg?t=1452903069"#}
+                poster="{{ trailer.thumbnail }}"
+                class="game-page-video"
+                controls="controls"
+                src="{{ trailer.webm['480'] }}"
+                type='video/webm; codecs="vp8, vorbis"'
+                >
+                {#      <source#}
+                {#              src="https://cdn.akamai.steamstatic.com/steam/apps/81613/movie480.webm?t=1452903069"#}
+                {#              type='video/webm; codecs="vp8, vorbis"'#}
+                {#      >#}
+                </video>
+            {% endif %}
+        {% endfor %}
+        </div>
     </div>
-    <h1 class="game-page-text1">{{ appname }} ({{ appid }})</h1>
+    <h1 class="game-page-text1">{{ game.name }} ({{ game.steam_appid }})</h1>
+    <span class="game-page-text4">Теги</span>
     <ul class="game-page-ul list">
-      <li class="game-page-li list-item">
-        <span class="game-page-text2">Adventure</span>
+    {% for genre in game.genres %}
+        <li class="game-page-li list-item">
+        <span class="game-page-text2">{{ genre.description }}</span>
       </li>
-      <li class="game-page-li1 list-item">
-        <span class="game-page-text3">FPS</span>
-      </li>
+    {% endfor %}
     </ul>
     <span class="game-page-text4">Об игре</span>
     <span class="game-page-text5">
-      {{ game.movies }}
+      Короткое:<br> {{ sd }}
     </span>
+    <span class="game-page-text5">
+      Полное:<br> {{ dd }}
+    </span>
+    <span class="game-page-text4">Дата выпуска</span>
+    <span class="game-page-text5">
+      {{ game.release_date.date }}
+    </span>
+    <span class="game-page-text4">Официальный веб-сайт</span>
+    <a class="home-navlink1 button" href="{{ game.website }}"><span class="game-page-text5">{{ game.website }}</span></a>
+
     <div class="game-page-container4">
           <div class="game-page-container5">
             <span class="game-page-text6">Оцени игру</span>
@@ -66,7 +77,7 @@
           </button>
     </div>
     <iframe
-      src="https://store.steampowered.com/widget/{{ appid }}/"
+      src="https://store.steampowered.com/widget/{{ game.steam_appid }}/"
       class="game-page-iframe"
     ></iframe>
 {% endblock %}

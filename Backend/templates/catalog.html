@@ -10,12 +10,12 @@
       id="searchbox"
     />
     <div class="catalog-container3">
-          <button class="catalog-button button">Adventure</button>
-          <button class="catalog-button1 button">FPS</button>
-          <button class="catalog-button2 button">MOBA</button>
-          <button class="catalog-button3 button">RPG</button>
-          <button class="catalog-button4 button">Racing</button>
-          <button class="catalog-button5 button">Strategy</button>
+          <button class="catalog-button button" id="game-genre">Adventure</button>
+          <button class="catalog-button button" id="game-genre">FPS</button>
+          <button class="catalog-button button" id="game-genre">MOBA</button>
+          <button class="catalog-button button" id="game-genre">RPG</button>
+          <button class="catalog-button button" id="game-genre">Racing</button>
+          <button class="catalog-button button" id="game-genre">Strategy</button>
     </div>
     <a href="{{ url_for("helper") }}" class="catalog-navlink2 button">
           Вместо поиска воспользуйтесь помощником
@@ -26,7 +26,7 @@
         {% for game in games %}
             <div class="game-card-feature-card">
                 <div class="game-card-text"><span>{{ game.appid }}</span></div>
-                <a href="{{ url_for("game_page", appid=game.appid, appname=game.name) }}">
+                <a href="{{ url_for("game_page", appid=game.appid) }}">
                     <img
                         alt="image"
                         src="{{ url_for("static", filename="img/empty-300w.jpg") }}"
