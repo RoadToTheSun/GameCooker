@@ -39,7 +39,16 @@
   font-style: normal;
   font-weight: 700;
 }
-
+.progress {
+  height: 100%;
+  width: 5px;
+  position: fixed;
+  bottom: 0; left: 0;
+}
+.progress > div {
+  height: 0;
+  background: var(--dl-color-my-2);
+}
 
 
 

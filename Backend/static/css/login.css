@@ -204,12 +204,13 @@
   height: var(--dl-size-size-xsmall);
 }
 .login-form {
+  text-align: center;
   width: 300px;
-  height: 314px;
+  height: 400px;
   position: relative;
-  margin-top: 200px;
+  margin-top: 100px;
   border-radius: var(--dl-radius-radius-radius8);
-  margin-bottom: 200px;
+  margin-bottom: 100px;
   background-color: rgba(125, 139, 245, 0.5);
 }
 .login-text1 {
@@ -243,6 +244,9 @@
   font-style: normal;
   font-weight: 700;
   background-color: var(--dl-color-my-2);
+}
+.login-form label {
+  display: block;
 }
 .login-navlink2 {
   left: 0px;

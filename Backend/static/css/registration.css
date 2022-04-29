@@ -205,11 +205,11 @@
 }
 .registration-form {
   width: 300px;
-  height: 314px;
+  height: auto;
   position: relative;
-  margin-top: 200px;
+  margin-top: 100px;
   border-radius: var(--dl-radius-radius-radius8);
-  margin-bottom: 200px;
+  margin-bottom: 100px;
   background-color: rgba(125, 139, 245, 0.5);
 }
 .registration-text1 {

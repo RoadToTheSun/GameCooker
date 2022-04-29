@@ -1,4 +1,5 @@
 let gameCards = document.querySelectorAll('.game-card-feature-card')
+let gameGenres = document.querySelectorAll('#game-genre')
 
 function liveSearch() {
     let search_query = document.getElementById("searchbox").value;

@@ -35,9 +35,9 @@
     </div>
     <h1 class="game-page-text1">{{ game.name }} ({{ game.steam_appid }})</h1>
     <span class="game-page-text4">Теги</span>
-    <ul class="game-page-ul list">
+    <ul class="game-page-ul list catalog-container3">
     {% for genre in game.genres %}
-        <li class="game-page-li list-item">
+        <li class="game-page-li list-item helper-button button">
         <span class="game-page-text2">{{ genre.description }}</span>
       </li>
     {% endfor %}

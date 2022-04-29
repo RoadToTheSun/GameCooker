@@ -209,6 +209,15 @@
   text-align: center;
   margin-bottom: var(--dl-space-space-twounits);
 }
+.helper-form {
+  width: 500px;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+.catalog-container4#search-results {
+  display: none;
+}
 .helper-container3 {
   flex: 0 0 auto;
   width: 500px;
@@ -287,7 +296,7 @@
   height: 100px;
   display: flex;
   align-items: center;
-  margin-bottom: 250px;
+  /*margin-bottom: 250px;*/
   justify-content: center;
 }
 .helper-container5 {

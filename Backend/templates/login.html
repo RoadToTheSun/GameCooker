@@ -4,18 +4,25 @@
 
 {% block body_content %}
 <form class="login-form">
-  <h1 class="login-text1">Авторизация</h1>
-  <input
+    <h1 class="login-text1">Авторизация</h1>
+    <input
+    name="login-mail"
     type="text"
     placeholder="Логин"
     class="login-textinput input"
-  />
-  <input
+    required
+    />
+    <input
+    name="pass"
     type="text"
     placeholder="Пароль"
     class="login-textinput1 input"
-  />
-  <button class="login-button button">Войти</button>
-  <a href="{{ url_for("registrate") }}" class="login-navlink2">Регистрация</a>
+    required
+    />
+    <label class="login-textinput input">Запомнить
+        <input name="remember" type="checkbox" value="remember" checked>
+    </label>
+    <button class="login-button button">Войти</button>
+    <a href="{{ url_for("registrate") }}" class="login-navlink2">Регистрация</a>
 </form>
 {% endblock %}

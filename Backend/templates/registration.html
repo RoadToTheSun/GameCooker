@@ -6,19 +6,33 @@
 <form class="registration-form">
   <h1 class="registration-text1">Регистрация</h1>
   <input
+    name="login-mail"
     type="text"
     placeholder="Email"
     class="registration-textinput input"
+    required
+    autofocus
   />
   <input
-    type="text"
-    placeholder="Логин"
-    class="registration-textinput1 input"
-  />
-  <input
+    name="pass"
     type="text"
     placeholder="Пароль"
+    class="registration-textinput1 input"
+    required
+  />
+  <input
+    name="pass2"
+    type="text"
+    placeholder="Повторно пароль"
+    class="registration-textinput1 input"
+    required
+  />
+  <input
+    name="nickname"
+    type="text"
+    placeholder="Никнейм"
     class="registration-textinput2 input"
+    required
   />
   <button class="registration-button button">Продолжить</button>
 </form>
