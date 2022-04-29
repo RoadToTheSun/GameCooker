@@ -1,5 +1,6 @@
 import locale
 import os
+from os import path
 import json, requests
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
@@ -20,25 +21,117 @@ from typing import List
 
 from werkzeug.exceptions import NotFound, Forbidden, BadRequest, NotImplemented
 from werkzeug.security import check_password_hash, generate_password_hash
+from flask_migrate import Migrate
+from flask_security import UserMixin, RoleMixin, SQLAlchemyUserDatastore, Security
+from flask_admin import Admin, AdminIndexView
+from flask_admin.contrib.sqla import ModelView
+# from Backend.user import User
 
-from Backend.user import User
-
+parent_dir = path.dirname(path.abspath(__file__))
 steam_web_api_key: str
-with open("C:/STUDYING/VI/Технологии программирования/steam_key.txt") as path:
-    steam_web_api_key = path.read()
-steam_id = SteamID(76561198080385483)
-secret_key = os.urandom(16).hex()
-
-logging.basicConfig(level=logging.DEBUG)
+with open(path.join(parent_dir, 'steam_key.txt')) as file:
+    steam_web_api_key = file.read()
+steam_id = SteamID(76561198273560595)
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = secret_key
 app.config["DEBUG"] = 1
 app.config['SWAGGER'] = {
     'title': 'Flasgger RESTful',
     # 'uiversion': 2,
     'specs_route': '/swagger/'
 }
+app.secret_key = 'very very secret'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///gameCooker.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+app.config['SECURITY_PASSWORD_SALT'] = 'salt'
+app.config['SECURITY_PASSWORD_HASH'] = 'bcrypt'
+
+db = SQLAlchemy(app)
+
+manager = LoginManager(app)
+migrate = Migrate(app, db)
+
+logging.basicConfig(level=logging.DEBUG)
+
+
+roles_users = db.Table('roles_users',
+                       db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
+                       db.Column('role_id', db.Integer(), db.ForeignKey('role.id'))
+                       )
+
+user_games = db.Table('user_games',
+                      db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
+                      db.Column('game_id', db.Integer(), db.ForeignKey('game.id')),
+                      db.Column('user_rating', db.Boolean()),
+                      db.Column('favourite', db.Integer())
+                      )
+
+
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    nickname = db.Column(db.String(100))
+    login_mail = db.Column(db.String(100), unique=True)
+    pass_hash = db.Column(db.String(255), nullable=False)
+    roles = db.relationship('Role', secondary=roles_users, backref=db.backref('users', lazy='dynamic'))
+    users_rating = db.relationship('Game', secondary=user_games, backref=db.backref('users', lazy='dynamic'))
+
+
+class Role(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True)
+    description = db.Column(db.String(100))
+
+
+game_genres = db.Table('game_genres',
+                       db.Column('game_id', db.Integer(), db.ForeignKey('game.id')),
+                       db.Column('genre_id', db.Integer(), db.ForeignKey('genre.id'))
+                       )
+
+
+class Game(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    players_count = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Integer, nullable=False)
+    rating = db.Column(db.Integer, nullable=False)
+    genres = db.relationship('Genre', secondary=game_genres, backref=db.backref('users', lazy='dynamic'))
+
+    def __repr__(self):
+        return self.name
+
+
+class Genre(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+
+
+class AdminMixin:
+    def is_accessible(self):
+        return current_user.has_role('admin')
+
+    def inaccessible_callback(self, name, **kwargs):
+        # localhost/admin -> login
+        return redirect(url_for('security.login', next=request.url))
+
+
+class AdminView(AdminMixin, ModelView):
+    pass
+
+
+class HomeAdminView(AdminMixin, AdminIndexView):
+    pass
+
+
+# Admin
+admin = Admin(app, 'Game-Cooker', url='/login', index_view=HomeAdminView(name='Home'))
+admin.add_view(AdminView(User, db.session))
+admin.add_view(AdminView(Role, db.session))
+admin.add_view(AdminView(Game, db.session))
+admin.add_view(AdminView(Genre, db.session))
+# Flask-Security
+user_datastore = SQLAlchemyUserDatastore(db, User, Role)
+# security = Security(app, user_datastore)
 
 manager = LoginManager(app)
 manager.session_protection = "strong"
@@ -47,13 +140,13 @@ manager.login_message = "Авторизуйтесь для доступа к з�
 manager.login_message_category = "success"
 
 
-def unauthorized_handler() -> Response:
-    return redirect(url_for("login"))
-
-
 @manager.user_loader
 def load_user(user_id):
-    return User(None).from_db(None, user_id)
+    return User.query.get(user_id)
+
+
+def unauthorized_handler() -> Response:
+    return redirect(url_for("login"))
 
 
 steam_api = WebAPI(
@@ -63,6 +156,7 @@ steam_api = WebAPI(
 api = Api(app)
 swagger = Swagger(app)
 # db = SQLAlchemy(app)
+
 
 @app.route('/api/<string:language>/', methods=['GET'])
 @swag_from('test.yml')
@@ -196,8 +290,8 @@ def login():
 @app.route('/registrate', methods=['GET', 'POST'])
 # @swag_from('registrate.yml')
 def registrate():
-    import validators
-    error = None
+    #  import validators
+    # error = None
     # if request.method == "POST":
     #     if validators.email(request.form['login-mail']) \
     #             and request.form['pass'] == request.form['pass2']:
