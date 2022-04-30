@@ -3,18 +3,32 @@
 {% block title %}Change Password{% endblock %}
 
 {% block body_content %}
- <form class="pass-change-form">
+ <form action="/pass-change" method="POST" class="pass-change-form">
       <h1 class="pass-change-text1">Смена пароля</h1>
       <input
-        type="text"
+        name="old_password"
+        type="password"
         placeholder="Старый пароль"
         class="pass-change-textinput input"
+        value=""
+        required
       />
       <input
-        type="Новый пароль"
-        placeholder="Пароль"
+        name="new_password"
+        type="password"
+        placeholder="Новый пароль"
         class="pass-change-textinput1 input"
+        value=""
+        required
       />
-      <button class="pass-change-button button">Сменить</button>
+      <input
+        name="new_password2"
+        type="password"
+        placeholder="Новый пароль"
+        class="pass-change-textinput1 input"
+        value=""
+        required
+      />
+      <input type="submit" class="pass-change-button button" value="Сменить">
  </form>
 {% endblock %}

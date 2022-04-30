@@ -26,6 +26,7 @@ from flask_security import UserMixin, RoleMixin, SQLAlchemyUserDatastore, Securi
 from flask_admin import Admin, AdminIndexView
 from flask_admin.contrib.sqla import ModelView
 # from Backend.user import User
+from flask_security.utils import encrypt_password, hash_password
 
 parent_dir = path.dirname(path.abspath(__file__))
 steam_web_api_key: str
@@ -33,7 +34,7 @@ with open(path.join(parent_dir, 'steam_key.txt')) as file:
     steam_web_api_key = file.read()
 steam_id = SteamID(76561198273560595)
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates')
 app.config["DEBUG"] = 1
 app.config['SWAGGER'] = {
     'title': 'Flasgger RESTful',
@@ -46,6 +47,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 app.config['SECURITY_PASSWORD_SALT'] = 'salt'
 app.config['SECURITY_PASSWORD_HASH'] = 'bcrypt'
+app.config['SECURITY_LOGIN_USER_TEMPLATE'] = 'security/login123.html'
 
 db = SQLAlchemy(app)
 
@@ -73,6 +75,7 @@ class User(db.Model, UserMixin):
     nickname = db.Column(db.String(100))
     login_mail = db.Column(db.String(100), unique=True)
     pass_hash = db.Column(db.String(255), nullable=False)
+    active = db.Column(db.Boolean, nullable=False)
     roles = db.relationship('Role', secondary=roles_users, backref=db.backref('users', lazy='dynamic'))
     users_rating = db.relationship('Game', secondary=user_games, backref=db.backref('users', lazy='dynamic'))
 
@@ -112,7 +115,7 @@ class AdminMixin:
 
     def inaccessible_callback(self, name, **kwargs):
         # localhost/admin -> login
-        return redirect(url_for('security.login', next=request.url))
+        return redirect(url_for('login123', next=request.url))
 
 
 class AdminView(AdminMixin, ModelView):
@@ -122,16 +125,16 @@ class AdminView(AdminMixin, ModelView):
 class HomeAdminView(AdminMixin, AdminIndexView):
     pass
 
-
+db.create_all()
 # Admin
-admin = Admin(app, 'Game-Cooker', url='/login', index_view=HomeAdminView(name='Home'))
+admin = Admin(app, 'Game-Cooker', url='/login123', index_view=HomeAdminView(name='Home'))
 admin.add_view(AdminView(User, db.session))
 admin.add_view(AdminView(Role, db.session))
 admin.add_view(AdminView(Game, db.session))
 admin.add_view(AdminView(Genre, db.session))
 # Flask-Security
 user_datastore = SQLAlchemyUserDatastore(db, User, Role)
-# security = Security(app, user_datastore)
+security = Security(app, user_datastore)
 
 manager = LoginManager(app)
 manager.session_protection = "strong"
@@ -146,7 +149,7 @@ def load_user(user_id):
 
 
 def unauthorized_handler() -> Response:
-    return redirect(url_for("login"))
+    return redirect(url_for("login123"))
 
 
 steam_api = WebAPI(
@@ -266,67 +269,60 @@ def authors():
     return render_template('authors.html', secret_key=app.secret_key)
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login123', methods=['GET', 'POST'])
 # @swag_from('login.yml')
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('profile'))
-    # if request.method == "POST":
-    #     rm = True if request.form.get('remember-me') else False
-    #     user = db.get_user_by_login(request.form['login-mail'])
-    #     if user and (check_password_hash(user['pass_hash'], request.form['pass'])):
-    #         user_obj = User(user)
-    #         login_user(user_obj, remember=rm)
-    #         flash(f'Successfully logged in as {user_obj.get_login()} ' +
-    #               ('(admin)' if user_obj.get_role() == 1 else
-    #                '(user)'))
-    #         flash(f'Ur hashed password is {user_obj.get_hash()}', "success")
-    #         return redirect(request.args.get('next') or url_for("profile"))
-    #     error = 'Неверная пара логин/пароль'
-    #     flash(error, "error")
-    return render_template('login.html', secret_key=app.secret_key)
+def login123():
+    if request.method == "POST":
+        email = request.form['login-mail']
+        password = request.form['password']
+        user = User.query.filter_by(login_mail=email).first()
+        if not user or not check_password_hash(user.pass_hash, password):
+            flash('Please check your login details and try again.')
+            return redirect(url_for('profile'))
+        login_user(user)
+    # if the above check passes, then we know the user has the right credentials
+    return render_template('login123.html', secret_key=app.secret_key)
 
 
 @app.route('/registrate', methods=['GET', 'POST'])
 # @swag_from('registrate.yml')
 def registrate():
-    #  import validators
-    # error = None
-    # if request.method == "POST":
-    #     if validators.email(request.form['login-mail']) \
-    #             and request.form['pass'] == request.form['pass2']:
-    #         # TODO add check if user exists
-    #         # and:
-    #         rm = True if request.form.get('remember-me') else False
-    #         pass_hash = generate_password_hash(request.form['pass'])
-    #         role = 1 if 'admin' in request.form['pass'] else 0
-    #         res = db.add_user(request.form['nickname'], request.form['login-mail'], pass_hash, role)
-    #         if res:
-    #             flash("Вы успешно зарегистрированы", "success")
-    #             user = db.get_user_by_login(request.form['login-mail'])
-    #             user_obj = User(user)
-    #             login_user(user_obj, remember=rm)
-    #             flash(f'Ur hashed_password is {user_obj.get_hash()}', "success")
-    #             return redirect(url_for('profile', id=user_obj['id']))
-    #         error = 'Ошибка при добавлении в БД'
-    #         flash(error, "error")
-
-    return render_template('registration.html', secret_key=app.secret_key)
+    if request.method == "POST":
+        if request.form['password'] == request.form['password2']:
+            user = User(nickname=request.form['nickname'], login_mail=request.form['login-mail'],
+                        pass_hash=generate_password_hash(request.form['password']), active=True)
+            try:
+                db.session.add(user)
+                db.session.commit()
+            except:
+                return "Ошибка, проверьте введенные данные"
+            return redirect(url_for('login123'))
+        else:
+            flash("Неверно заполнены поля")
+    return render_template('registration.html')
 
 
-@app.route('/pass-change', methods=['GET'])
+@app.route('/pass-change', methods=['GET', 'POST'])
 # @swag_from('pass-change.yml')
 def pass_change():
+    if request.method == "POST":
+        user = User.query.get(current_user.id)
+        old_password = request.form['old_password']
+        new_password = request.form['new_password']
+        new_password2 = request.form['new_password2']
+        if check_password_hash(user.pass_hash, old_password) and \
+                new_password == new_password2:
+            user.pass_hash = generate_password_hash(new_password)
+            db.session.commit()
+        else:
+            flash("Неверно заполнены поля")
     return render_template('pass-change.html', secret_key=app.secret_key)
 
 
 @app.route('/logout')
 @login_required
 def logout():
-    logout_user()
-    flash("Вы вышли из аккаунта", "success")
-    # return redirect(url_for('index'))
-    pass
+    return redirect(url_for('security.logout'))
 
 
 @app.after_request
@@ -335,20 +331,20 @@ def add_header(response):
     return response
 
 
-@app.errorhandler(NotFound)
-def not_found(error):
-    flash(error, 'error')
-    code = NotFound.code
-    message = "Такой страницы не существует"
-    return render_template('error-handler.html', response=dict({code:message})), 404
-
-
-@app.errorhandler(NotImplemented)
-def not_implemented(error):
-    flash(error, 'error')
-    code = NotImplemented.code
-    message = "Такой страницы не существует"
-    return render_template('error-handler.html', response=dict({code:message})), 501
+# @app.errorhandler(NotFound)
+# def not_found(error):
+#     flash(error, 'error')
+#     code = NotFound.code
+#     message = "Такой страницы не существует"
+#     return render_template('error-handler.html', response=dict({code:message})), 404
+#
+#
+# @app.errorhandler(NotImplemented)
+# def not_implemented(error):
+#     flash(error, 'error')
+#     code = NotImplemented.code
+#     message = "Такой страницы не существует"
+#     return render_template('error-handler.html', response=dict({code:message})), 501
 
 
 @app.context_processor

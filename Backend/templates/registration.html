@@ -3,28 +3,31 @@
 {% block title %}Login{% endblock %}
 
 {% block body_content %}
-<form class="registration-form">
-  <h1 class="registration-text1">Регистрация</h1>
+
+<form action="/registrate" method="POST" class="registration-form">
+  <h1 class="registration-text1"></h1>
   <input
     name="login-mail"
     type="text"
     placeholder="Email"
     class="registration-textinput input"
+    value=""
     required
-    autofocus
   />
   <input
-    name="pass"
-    type="text"
+    name="password"
+    type="password"
     placeholder="Пароль"
     class="registration-textinput1 input"
+    value=""
     required
   />
   <input
-    name="pass2"
-    type="text"
+    name="password2"
+    type="password"
     placeholder="Повторно пароль"
     class="registration-textinput1 input"
+    value=""
     required
   />
   <input
@@ -32,8 +35,10 @@
     type="text"
     placeholder="Никнейм"
     class="registration-textinput2 input"
+    value=""
     required
   />
-  <button class="registration-button button">Продолжить</button>
+<!--  <button class="registration-button button">Продолжить</button>-->
+  <input type="submit" class="registration-button button" value="Регистрация">
 </form>
 {% endblock %}
