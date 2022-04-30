@@ -1,0 +1,34 @@
+{% macro login(handle_func) %}
+    <div {#style="text-align: center"#} id="popupWin" class="modal-win">
+            <h2> Войти </h2>
+            <form method="post" action="{{ url_for(handle_func) }}">
+                <label>Логин
+                    <input name="login" placeholder="Логин" value="" required autofocus>
+                </label>
+                <br>
+                <label>Пароль
+                    <input name="pass" placeholder="Пароль" value="" required autofocus>
+                </label>
+                <br>
+                <label>Запомнить
+                    <input name="remember" type="checkbox" value="Запомнить" {#checked#}>
+                </label>
+                <input type="submit" value="Войти">
+            </form>
+            <hr>
+            <h2> Или зарегистрироваться </h2>
+            <br> <a href="{{ url_for('register') }}">Регистрация</a>
+            <hr>
+    </div>
+{% endmacro %}
+
+{% macro register(handle_func) %}
+    <div class="register-form">
+    <form method="post" action="{{ url_for(handle_func) }}">
+        <p><label for="">Логин: </label><input name="login" type="text" placeholder="Логин" value="" required autofocus></p>
+        <p><label for="">Пароль: </label><input name="pass" type="password" placeholder="Пароль" value="" required autofocus></p>
+        <p><label for="">Повтор пароля: </label><input name="pass2" type="password" value="" required></p>
+        <input type="submit" value="Зарегистрироваться">
+    </form>
+    </div>
+{% endmacro %}

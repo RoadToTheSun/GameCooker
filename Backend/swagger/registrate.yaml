@@ -1,0 +1,35 @@
+paths:
+  /registrate:
+    post:
+      tags:
+        - "user"
+      summary: "Register new user into DB"
+      description: ""
+      operationId: "register_user"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "login"
+          in: "formData"
+          description: "Mail of user"
+          required: true
+          type: "string"
+        - name: "password"
+          in: "formData"
+          description: "Password of user"
+          required: true
+          type: "string"
+          format: "password"
+        - name: "nickname"
+          in: "formData"
+          description: "Nickname for user"
+          required: true
+          type: "string"
+      responses:
+        "200":
+          description: "New User created"
+          schema:
+            $ref: "#/definitions/User"
+        "400":
+          description: "Invalid nickname/login/password supplied"
+  

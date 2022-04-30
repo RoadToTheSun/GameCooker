@@ -1,0 +1,14 @@
+paths:
+  /authors:
+    get:
+      tags:
+        - "Creators"
+      summary: "Get all available games"
+      description: ""
+      operationId: "get_games"
+      responses:
+        "200":
+          description: "Games are loaded"
+        "500":
+          description: "Server error"
+  

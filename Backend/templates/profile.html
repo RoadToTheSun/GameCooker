@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block body_content %}
+    <img
+      alt="image"
+      src="https://play.teleporthq.io/static/svg/default-img.svg"
+      class="profile-image1"
+    />
+    <h1 class="profile-text1">User name</h1>
+    <span class="profile-text2">User Email</span>
+    <a href="{{ url_for("pass_change") }}" class="profile-navlink2">Сменить пароль</a>
+    <div class="profile-catalog">
+      <h1 class="profile-text3">Liked games:</h1>
+      <div class="profile-container3">
+        <div class="game-card-feature-card game-card-root-class-name4">
+          <img
+            alt="image"
+            src="../static/img/empty-300w.jpg"
+            class="game-card-image"
+          />
+          <h2 class="game-card-text"><span>Game name</span></h2>
+        </div>
+        <div class="game-card-feature-card game-card-root-class-name5">
+          <img
+            alt="image"
+            src="../static/img/empty-300w.jpg"
+            class="game-card-image"
+          />
+          <h2 class="game-card-text"><span>Game name</span></h2>
+        </div>
+        <div class="game-card-feature-card game-card-root-class-name6">
+          <img
+            alt="image"
+            src="../static/img/empty-300w.jpg"
+            class="game-card-image"
+          />
+          <h2 class="game-card-text"><span>Game name</span></h2>
+        </div>
+        <div class="game-card-feature-card game-card-root-class-name7">
+          <img
+            alt="image"
+            src="../static/img/empty-300w.jpg"
+            class="game-card-image"
+          />
+          <h2 class="game-card-text"><span>Game name</span></h2>
+        </div>
+      </div>
+    </div>
+{% endblock %}
