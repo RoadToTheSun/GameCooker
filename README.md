@@ -31,6 +31,18 @@
 </p>
   
 ---
+ 
+<p>
+  <a href="https://github.com/Metra345/GameCooker/blob/documentation/Documentation/%D0%9A%D1%83%D1%80%D1%81%D0%BE%D0%B2%D0%BE%D0%B9%20%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%20(%D0%B4%D0%BE%D0%BA%D0%BB%D0%B0%D0%B4-%D0%BE%D1%82%D1%87%D1%91%D1%82).docx">
+  <img src="https://cdn-icons-png.flaticon.com/512/281/281760.png" alt="Doc" width="20" height="20"/>
+  Курсовой проект (доклад-отчёт) .docx
+</p>
+ 
+<p>
+  <a href="https://github.com/Metra345/GameCooker/blob/documentation/Documentation/%D0%9A%D1%83%D1%80%D1%81%D0%BE%D0%B2%D0%BE%D0%B9%20%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%20(%D0%B4%D0%BE%D0%BA%D0%BB%D0%B0%D0%B4-%D0%BE%D1%82%D1%87%D1%91%D1%82).pdf">
+  <img src="https://cdn-icons-png.flaticon.com/512/337/337946.png" alt="Doc" width="20" height="20"/>
+  Курсовой проект (доклад-отчёт) .pdf
+</p>
 
 <p>
   <a href="https://github.com/Metra345/GameCooker/blob/main/Documentation/%D0%A2%D0%97.docx">
