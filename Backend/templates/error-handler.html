@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content_header %}
+    {{ error }}
+{% endblock %}
+
+{% block content %}
+    {% for code, message in response %}
+        <p>{{ message }} <strong>({{ code }})</strong></p>
+    {% endfor %}
+    <p>Вернуться на <a href="{{url_for('index')}}">главную</a> страницу.</p>
+{% endblock %}

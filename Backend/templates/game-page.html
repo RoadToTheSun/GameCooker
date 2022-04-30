@@ -14,23 +14,26 @@
         {% endfor %}
         </div>
         <div class="game-trailers">
-        {% for trailer in game.movies %}
-            {% if trailer.highlight%}
-                <video
-                {#          poster="https://cdn.akamai.steamstatic.com/steam/apps/81613/movie.293x165.jpg?t=1452903069"#}
-                poster="{{ trailer.thumbnail }}"
-                class="game-page-video"
-                controls="controls"
-                src="{{ trailer.webm['480'] }}"
-                type='video/webm; codecs="vp8, vorbis"'
-                >
-                {#      <source#}
-                {#              src="https://cdn.akamai.steamstatic.com/steam/apps/81613/movie480.webm?t=1452903069"#}
-                {#              type='video/webm; codecs="vp8, vorbis"'#}
-                {#      >#}
-                </video>
-            {% endif %}
-        {% endfor %}
+        {% if game.movies %}
+            {% for trailer in game.movies %}
+                {% if trailer.highlight%}
+                    <video
+                    {#          poster="https://cdn.akamai.steamstatic.com/steam/apps/81613/movie.293x165.jpg?t=1452903069"#}
+                    poster="{{ trailer.thumbnail }}"
+                    class="game-page-video"
+                    controls="controls"
+                    src="{{ trailer.webm['480'] }}"
+                    type='video/webm; codecs="vp8, vorbis"'
+                    muted
+                    >
+                    {#      <source#}
+                    {#              src="https://cdn.akamai.steamstatic.com/steam/apps/81613/movie480.webm?t=1452903069"#}
+                    {#              type='video/webm; codecs="vp8, vorbis"'#}
+                    {#      >#}
+                    </video>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
         </div>
     </div>
     <h1 class="game-page-text1">{{ game.name }} ({{ game.steam_appid }})</h1>
@@ -54,7 +57,7 @@
       {{ game.release_date.date }}
     </span>
     <span class="game-page-text4">Официальный веб-сайт</span>
-    <a class="home-navlink1 button" href="{{ game.website }}"><span class="game-page-text5">{{ game.website }}</span></a>
+    <a class="home-navlink1 button" href="{{ game.website }}" target="_blank"><span class="game-page-text5">{{ game.website }}</span></a>
 
     <div class="game-page-container4">
           <div class="game-page-container5">

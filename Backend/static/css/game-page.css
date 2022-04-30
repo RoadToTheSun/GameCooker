@@ -269,6 +269,9 @@
   margin-top: var(--dl-space-space-unit);
   text-align: center;
 }
+.game-page-text5>img {
+  width: inherit;
+}
 .game-page-container4 {
   width: 220px;
   height: 109px;

@@ -101,7 +101,7 @@
   justify-content: flex-start;
 }
 .game-card-feature-card:hover {
-  transform: scale(1.02);
+  transform: translateX(5px) translateY(-10px);
   box-shadow: 5px 5px 10px 0px rgba(0, 0, 0, 0.2);
 }
 .game-card-feature-card.is-hidden {

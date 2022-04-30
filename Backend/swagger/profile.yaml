@@ -1,0 +1,15 @@
+paths:
+  /profile:
+    get:
+      tags:
+        - "user"
+      summary: "Get user profile"
+      description: "Info about user defined by id"
+      operationId: "get_profile"
+      responses:
+        "200":
+          description: "Profile returned"
+          schema:
+            $ref: "#/definitions/User"
+        "404":
+          description: "That user doesn`t exist!"
