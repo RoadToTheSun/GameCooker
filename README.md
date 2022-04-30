@@ -16,10 +16,21 @@
 
 <h2>Команда ТП-6.2.3 - Богословский Артём, Швыденко Олег, Колупанов Саша</h2>
 
+<h2>
+  <a href="https://github.com/Metra345/GameCooker/tree/develop">
+  Код проекта находится в ветке Develop
+</h2>
+
 <h3>
   <a href="https://game-cooker.teleporthq.app/">
   <img src="https://user-images.githubusercontent.com/74101177/166065323-5209ac72-2985-43ed-85c7-27ac0b8e65d2.png" alt="Trello" width="30" height="30"/>
   Интерактивный дизайн-макет(без БД и Steam WebAPI) by TeleportHQ
+</h3>
+ 
+<h3>
+  <a href="https://game-cooker.herokuapp.com/">
+  <img src="https://cdn.iconscout.com/icon/free/png-256/heroku-2752161-2284978.png" alt="Trello" width="30" height="30"/>
+  Текущий код (из ветки develop) приложения на хостинге Heroku
 </h3>
   
 ---
