@@ -17,7 +17,6 @@ user_games = db.Table('user_games',
                       )
 
 
-
 @dataclass
 class Role(db.Model, UserMixin):
     id: int = db.Column(db.Integer, primary_key=True)
