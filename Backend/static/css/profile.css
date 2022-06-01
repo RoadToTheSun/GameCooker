@@ -87,19 +87,6 @@
   }
 }
 
-.game-card-image {
-  width: 250px;
-  height: 300px;
-  align-self: center;
-  object-fit: cover;
-  border-radius: var(--dl-radius-radius-radius4);
-}
-.game-card-text {
-  align-self: center;
-  margin-top: var(--dl-space-space-unit);
-  margin-bottom: 0px;
-}
-
 
 
 

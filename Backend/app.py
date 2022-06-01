@@ -5,6 +5,7 @@ import json, requests
 from datetime import datetime
 
 import sqlalchemy.orm
+from jinja2 import Environment
 from sqlalchemy.orm import Query
 from flask_sqlalchemy import SQLAlchemy
 
@@ -58,7 +59,6 @@ app.config['SECURITY_PASSWORD_SALT'] = 'salt'
 app.config['SECURITY_PASSWORD_HASH'] = 'bcrypt'
 app.config['SECURITY_LOGIN_USER_TEMPLATE'] = 'security/login123.html'
 
-db = SQLAlchemy(app)
 
 manager = LoginManager(app)
 migrate = Migrate(app, db)
@@ -69,6 +69,8 @@ steam_api = WebAPI(
 )
 api = Api(app)
 swagger = Swagger(app)
+
+db.init_app(app)
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -115,16 +117,19 @@ def addSteamGames():
     logging.warning(f"{deleted_rows} ROWS WERE DELETED FROM `GAME`")
     games: List[Game] = []
     ids = []
-    with open(path.join(app.root_path, 'resources', 'games.csv'), 'r') as game_ids:
-        for _id in csv.reader(game_ids):
-            ids.append(int(_id[0]))
+    players_min_count = []
+    with open(path.join(app.root_path, 'resources', 'games.csv'), 'r') as game_data:
+        for row in csv.reader(game_data):
+            ids.append(int(row[0]))
+            players_min_count.append(int(row[1]))
     logging.info('GAME IDS TO BE ADDED: '+', '.join(map(str, ids)))
-    for _id in ids:
+    logging.info('GAME PLAYERS_COUNT TO BE ADDED: '+', '.join(map(str, players_min_count)))
+    for step, _id in enumerate(ids):
         url = f"https://store.steampowered.com/api/appdetails/?appids={_id}&key={steam_web_api_key}&l=russian"
         response: dict = webapi.webapi_request(url)
         game_info = response[f'{_id}']['data']
         name: str = game_info['name']
-        players_count: int = random.randint(1, 10)
+        players_count: int = players_min_count[step]
         price: int = random.randint(0, 1)
         # rating = None
         preview_url: str = f"https://steamcdn-a.akamaihd.net/steam/apps/{_id}/header.jpg"
@@ -197,6 +202,7 @@ def index():
 def catalog():
     from sqlalchemy.orm import query
     games: query.Query = Game.query.all()
+
     page_format = "json"
     # page = f"https://api.steampowered.com/ISteamApps/GetAppList/v2/?key={steam_web_api_key}&format={page_format}"
     # soup = BeautifulSoup(requests.get(page).text, features="html.parser")
@@ -338,4 +344,5 @@ def inject_enumerate():
 
 
 if __name__ == '__main__':
+    jinja_env = Environment(extensions=['jinja2.ext.loopcontrols'])
     app.run(debug=True)

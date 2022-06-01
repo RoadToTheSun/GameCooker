@@ -15,22 +15,26 @@
         </div>
         <div class="game-trailers">
         {% if game.movies %}
+            {% set ns = namespace(found=false) %}
             {% for trailer in game.movies %}
-                {% if trailer.highlight%}
-                    <video
-                    {#          poster="https://cdn.akamai.steamstatic.com/steam/apps/81613/movie.293x165.jpg?t=1452903069"#}
-                    poster="{{ trailer.thumbnail }}"
-                    class="game-page-video"
-                    controls="controls"
-                    src="{{ trailer.webm['480'] }}"
-                    type='video/webm; codecs="vp8, vorbis"'
-                    muted
-                    >
-                    {#      <source#}
-                    {#              src="https://cdn.akamai.steamstatic.com/steam/apps/81613/movie480.webm?t=1452903069"#}
-                    {#              type='video/webm; codecs="vp8, vorbis"'#}
-                    {#      >#}
-                    </video>
+                {% if not ns.found %}
+                    {% if trailer.highlight %}
+                        <video
+                        {#          poster="https://cdn.akamai.steamstatic.com/steam/apps/81613/movie.293x165.jpg?t=1452903069"#}
+                        poster="{{ trailer.thumbnail }}"
+                        class="game-page-video"
+                        controls="controls"
+                        src="{{ trailer.webm['480'] }}"
+                        type='video/webm; codecs="vp8, vorbis"'
+                        muted
+                        >
+                        {#      <source#}
+                        {#              src="https://cdn.akamai.steamstatic.com/steam/apps/81613/movie480.webm?t=1452903069"#}
+                        {#              type='video/webm; codecs="vp8, vorbis"'#}
+                        {#      >#}
+                        </video>
+                        {% set ns.found = true %}
+                    {% endif %}
                 {% endif %}
             {% endfor %}
         {% endif %}
@@ -70,7 +74,9 @@
               <option value="1">Отвратительно</option>
             </select>
           </div>
-          <button class="game-page-button button">
+          <button class="game-page-button button"
+          onclick="ym(88602934,'reachGoal','like')"
+          >
             <span class="game-page-text7">Like</span>
             <svg viewBox="0 0 1024 1024" class="game-page-icon10">
               <path
