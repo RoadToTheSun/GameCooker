@@ -1,0 +1,471 @@
+---
+swagger: "2.0"
+info:
+  title: "GameCookerSwagger"
+  description: "
+    # ИгроВарка API
+    ![banner](https://user-images.githubusercontent.com/74101177/166057912-b5618ed2-27bd-47fb-aa71-d791c8608321.png) \n
+    ## 
+    Команда ТП-6.2.3 \n
+    * Богословский Артём \n
+    * Швыденко Олег \n
+    * Колупанов Саша \n
+    ##
+    Страница проекта на Гитхабе: 
+    [CameCooker](https://github.com/Metra345/GameCooker/blob/develop/README.md). \n
+    
+    "
+  version: 1.0.0
+
+tags:
+- name: "steam"
+  description: "Deal with steam api requests"
+- name: "game"
+  description: "Deal with game requests"
+- name: "helper"
+  description: "Help to find your game"
+- name: "user"
+  description: "Operations about user"
+- name: "admin"
+  description: "Admin actions"
+
+schemes:
+- "http"
+- "https"
+
+#basePath: "/api"
+
+securityDefinitions:
+   # Steam-API-Key: 71C62A93E943CF496209037648DA088D
+  SteamHeader:
+   type: apiKey
+   in: header
+   name: X-Steam-API-Key
+  # /path?steam_api_key=71C62A93E943CF496209037648DA088D
+  SteamQuery:
+   type: apiKey
+   in: query
+   name: steam_api_key
+  JWTToken:
+    type: basic
+
+
+paths:
+  /steam-api/apilist:
+    get:
+      tags:
+        - "steam"
+      summary: "Get all available SteamWEB API Interfaces"
+      description: ""
+      operationId: "get_steam_int"
+      produces:
+        - "application/json"
+      responses:
+        "200":
+          description: "Interfaces are loaded"
+        "503":
+          description: "Interfaces are not available"
+
+  /steam-api/apps:
+    get:
+      tags:
+        - "steam"
+      summary: "Get all available Steam apps"
+      description: "Return json of [{appid, appname}] from IStoreService.GetAppList"
+      operationId: "get_steam_apps"
+      produces:
+        - "application/json"
+      responses:
+        "200":
+          description: "Apps are loaded"
+        "503":
+          description: "Steam WEB API isn`t available"
+
+  /steam-api/apps/{id}:
+    get:
+      tags:
+        - "steam"
+      summary: "Get info about app by given id"
+      description: "Return a json from url"
+      operationId: "get_steam_app_info"
+      responses:
+        "200":
+          description: "App info is OK"
+          schema:
+            $ref: "#/definitions/SteamGame"
+        "404":
+          description: "App with that id not found"
+      parameters:
+        - name: id
+          in: "path"
+          type: "integer"
+          description: "ID of game"
+          required: true
+          default: 730
+        - name: steam_key
+          in: "query"
+          type: "string"
+          description: "Steam-API key (https://steamcommunity.com/dev/registerkey)"
+      security:
+      - SteamHeader: []
+      - SteamQuery: []
+
+  /main-api/catalog:
+    get:
+      tags:
+      - "game"
+      summary: "Get all available games"
+      description: ""
+      operationId: "get_games"
+      responses:
+        "200":
+          description: "Games are loaded"
+        "500":
+          description: "Server error"
+
+  /main-api/game/{id}:
+    get:
+      tags:
+        - "game"
+      summary: "Get game by id"
+      description: "Take a look at the concrete game of catalog"
+      operationId: "get_game"
+      responses:
+        "200":
+          description: "Games are loaded"
+          schema:
+            $ref: "#/definitions/SteamGame"
+        "404":
+          description: "Game with that id not found"
+      parameters:
+      - name: id
+        in: "path"
+        type: "integer"
+        description: "ID of game"
+        required: true
+        default: 730
+
+    post:
+      tags:
+        - "game"
+      summary: "Add new game"
+      description: ""
+      operationId: "add_game"
+      parameters:
+      - name: id
+        in: "path"
+        type: "integer"
+        description: "ID of game"
+        required: true
+      responses:
+        "200":
+          description: "Games are loaded"
+          schema:
+            $ref: "#/definitions/Game"
+        "404":
+          description: "Game with that id not found"
+      security:
+        - JWTToken: []
+
+  /main-api/helper:
+    get:
+      tags:
+        - "helper"
+      summary: "Helps to find games"
+      description: "Provides user with the games that suitable for his interests"
+      operationId: "helper_find_game"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+#      - name: genre
+#        in: query
+#        type: array
+#        description: ""
+#        required: true
+#        in: body
+#        schema:
+#          type: array
+#          items:
+#            type: string
+#          example: [ "MMO", "RPG", "COOP" ]
+      - name: players_count
+        in: "query"
+        type: integer
+        description: "Players count"
+      - name: min_price
+        in: "query"
+        type: integer
+        description: "Min price of the game"
+      - name: max_price
+        in: "query"
+        type: integer
+        description: "Max price of the game"
+      responses:
+        "200":
+          description: "Suitable games are loaded"
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Game"
+
+  /main-api/users:
+    get:
+      tags:
+        - "user"
+      summary: "Get users"
+      description: "All available users (with optional [id]s)"
+      operationId: "get_users"
+      parameters:
+        - name: "ids"
+          in: "formData"
+          type: "array"
+          items:
+            type: "integer"
+          collectionFormat: "multi"
+          description: "Id of users"
+          required: false
+      responses:
+        "200":
+          description: "Users (with provided IDs)"
+          schema:
+            $ref: "#/definitions/User"
+        "404":
+          description: "User don`t exist!"
+      security:
+        - JWTToken: [ ]
+
+  /main-api/profile/{id}:
+    get:
+      tags:
+        - "user"
+      summary: "Get user profile"
+      description: "Info about user defined by id"
+      operationId: "get_profile"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Id of user"
+          required: true
+          type: "integer"
+          format: "int64"
+      responses:
+        "200":
+          description: "Profile returned"
+          schema:
+            $ref: "#/definitions/User"
+        "404":
+          description: "That user doesn`t exist!"
+      security:
+        - JWTToken: []
+
+  /main-api/login:
+    post:
+      tags:
+        - "user"
+      summary: "Logs user into the system"
+      description: ""
+      operationId: "login_user"
+      consumes:
+        - "application/x-www-form-urlencoded"
+      produces:
+        - "application/xml"
+        - "application/json"
+      parameters:
+        - name: "login-mail"
+          in: "formData"
+          description: "The user name for login"
+          required: true
+          type: "string"
+          format: "email"
+        - name: "password"
+          in: "formData"
+          description: "The password for login in"
+          required: true
+          type: "string"
+      responses:
+        "200":
+          description: "User with JWT-TOKEN returned"
+          schema:
+            $ref: "#/definitions/User"
+          headers:
+            JWT-Token:
+              type: "string"
+            X-Expires-After:
+              type: "string"
+              format: "date-time"
+              description: "date in UTC when token expires"
+        "400":
+          description: "Invalid username/password supplied"
+
+  /main-api/registrate:
+    post:
+      tags:
+        - "user"
+      summary: "Register new user into DB"
+      description: ""
+      operationId: "register_user"
+      consumes:
+        - "application/x-www-form-urlencoded"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "nickname"
+          in: "formData"
+          description: "Nickname for user"
+          required: true
+          type: "string"
+        - name: "login-mail"
+          in: "formData"
+          description: "Mail of user"
+          required: true
+          type: "string"
+          format: "email"
+        - name: "password"
+          in: "formData"
+          description: "Password of user"
+          required: true
+          type: "string"
+          format: "password"
+        - name: "password2"
+          in: "formData"
+          description: "Password of user"
+          required: true
+          type: "string"
+          format: "password"
+      responses:
+        "200":
+          description: "New User created"
+          schema:
+            $ref: "#/definitions/User"
+        "400":
+          description: "Invalid nickname/login/password supplied"
+
+  /pass-change:
+    put:
+      tags:
+        - "user"
+      summary: "Change password for current_user"
+      description: ""
+      operationId: "change_pass"
+      consumes:
+        - "application/x-www-form-urlencoded"
+      parameters:
+        - name: "old-password"
+          in: "formData"
+          description: "Old password"
+          required: true
+          type: "string"
+        - name: "new-password"
+          in: "formData"
+          description: "New password"
+          required: true
+          type: "string"
+        - name: "new-password2"
+          in: "formData"
+          description: "New password 1 more time"
+          required: true
+          type: "string"
+      responses:
+        "200":
+          description: "Password updated"
+          schema:
+            $ref: "#/definitions/User"
+        "400":
+          description: "Invalid password supplied"
+
+  /main-api/authors:
+    get:
+      tags:
+        - "creators"
+      summary: "Get all available games"
+      description: ""
+      operationId: "get_authors"
+      responses:
+        "200":
+          description: "List of creators"
+        "500":
+          description: "Server error"
+
+
+definitions:
+  Game:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      name:
+        type: "string"
+#        format: "int64"
+      short_description:
+        type: "string"
+        description: "Long story short"
+#        format: "int64"
+      players_count:
+        type: "integer"
+        # format: "int32"
+      price:
+        type: "integer"
+        default: 0
+      rating:
+        type: "integer"
+        description: "Math.avg(rating_of_users)"
+      preview_url:
+        type: "string"
+      genres:
+        type: "array"
+        xml:
+          name: "genre"
+          wrapped: true
+        items:
+          $ref: "#/definitions/Genre"
+    xml:
+      name: "User"
+
+  Genre:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      name:
+        type: "string"
+    xml:
+      name: "Genre"
+
+  User:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+        example: 1
+      nickname:
+        type: "string"
+        example: "Sasha"
+      login_mail:
+        type: "string"
+        example: "kolupanov_a_v@sc.vsu.ru"
+        format: "email"
+      pass_hash:
+        type: "string"
+        example: "Uz8-kuP-Rff-kbT"
+
+    xml:
+      name: "Game"
+
+  Role:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      name:
+        type: "string"
+      description:
+        type: "string"
+    xml:
+      name: "Role"
+

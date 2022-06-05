@@ -31,7 +31,7 @@ from flask_admin import Admin, AdminIndexView
 from flask_admin.contrib.sqla import ModelView
 from data_base.models import *
 # from Backend.user import User
-from flask_security.utils import encrypt_password, hash_password
+from flask_security.utils import hash_password
 
 parent_dir = path.dirname(path.abspath(__file__))
 steam_web_api_key: str
@@ -43,14 +43,16 @@ steam_id = SteamID(76561198273560595)
 
 app = Flask(__name__, template_folder='templates')
 app.config["DEBUG"] = 1
+app.config["APPLICATION_ROOT"] = app.root_path
 app.config['SWAGGER'] = {
-    'title': 'GameCooker API',
+    # 'title': 'GameCooker API',
+    # 'doc_dir': './api/swagger/',
     'uiversion': 3,
-    'specs_route': '/swagger/',
-    # 'doc_dir': f'{path.join(app.root_path, "swagger")}',
-    # 'endpoint': 'api',
-    # 'route': '/api'
+    'doc_dir': f'{path.join(app.root_path, "api", "swagger")}',
+    # 'endpoint': 'swagger',
+    # 'route': '/swagger'
 }
+print(app.config)
 app.secret_key = os.urandom(16).hex()
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///gameCooker.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -59,20 +61,46 @@ app.config['SECURITY_PASSWORD_SALT'] = 'salt'
 app.config['SECURITY_PASSWORD_HASH'] = 'bcrypt'
 app.config['SECURITY_LOGIN_USER_TEMPLATE'] = 'security/login123.html'
 
+swagger_config = {
+    "headers": [
+    ],
+    "specs": [
+        {
+            "endpoint": 'swagger',
+            "route": '/api',
+            # "rule_filter": lambda rule: True,  # all in
+            # "model_filter": lambda tag: True,  # all in
+        }
+    ],
+    "static_url_path": "/flasgger_static",
+    # "static_folder": "/api/swagger",  # must be set by user
+    "specs_route": "/swagger"
+}
 
-manager = LoginManager(app)
 migrate = Migrate(app, db)
+
+# api = Api()
+db.init_app(app)
+logging.basicConfig(level=logging.DEBUG)
 
 steam_api = WebAPI(
     steam_web_api_key,
     # format="vdf",
 )
-api = Api(app)
-swagger = Swagger(app)
+# from api.steam import api_steam
+from api import steam, main
 
-db.init_app(app)
+app.register_blueprint(main.api_main, url_prefix='/main-api')
+app.register_blueprint(steam.api_steam, url_prefix='/steam-api')
 
-logging.basicConfig(level=logging.DEBUG)
+swagger = Swagger(
+    app,
+    template_file=os.path.join(app.root_path, 'api', 'swagger', 'swagger.yaml'),
+    parse=True,
+    config=swagger_config
+)
+# print(swagger.template_file)
+# print(f"URL_MAP: {app.url_map}")
 
 
 class AdminMixin:
@@ -122,18 +150,19 @@ def addSteamGames():
         for row in csv.reader(game_data):
             ids.append(int(row[0]))
             players_min_count.append(int(row[1]))
-    logging.info('GAME IDS TO BE ADDED: '+', '.join(map(str, ids)))
-    logging.info('GAME PLAYERS_COUNT TO BE ADDED: '+', '.join(map(str, players_min_count)))
+    logging.info('GAME IDS TO BE ADDED: ' + ', '.join(map(str, ids)))
+    logging.info('GAME PLAYERS_COUNT TO BE ADDED: ' + ', '.join(map(str, players_min_count)))
     for step, _id in enumerate(ids):
         url = f"https://store.steampowered.com/api/appdetails/?appids={_id}&key={steam_web_api_key}&l=russian"
         response: dict = webapi.webapi_request(url)
         game_info = response[f'{_id}']['data']
         name: str = game_info['name']
+        sd: str = Markup(game_info['short_description'])
         players_count: int = players_min_count[step]
         price: int = random.randint(0, 1)
         # rating = None
         preview_url: str = f"https://steamcdn-a.akamaihd.net/steam/apps/{_id}/header.jpg"
-        game = Game(id=_id, name=name, players_count=players_count, price=price, preview_url=preview_url)
+        game = Game(id=_id, name=name, short_description=sd, players_count=players_count, price=price, preview_url=preview_url)
         games.append(game)
     try:
         db.session.add_all(games)
@@ -146,10 +175,6 @@ def addSteamGames():
         return _json
 
 
-def unauthorized_handler() -> Response:
-    return redirect(url_for("login"))
-
-
 @manager.user_loader
 def load_user(user_id):
     return User.query.get(user_id)
@@ -158,36 +183,12 @@ def load_user(user_id):
 def unauthorized_handler() -> Response:
     return redirect(url_for("login123"))
 
+
 @app.before_first_request
 def create_user():
     db.create_all()
     # user_datastore.create_user(email='matt@nobien.net', password='password')
     # db.session.commit()
-
-@app.route('/api/<string:language>/', methods=['GET'])
-@swag_from('test.yml')
-def test(language):
-    return jsonify(language=language)
-
-
-
-@swag_from("apilist.yaml")
-@app.route('/api/apilist')
-def getSupportedAPIList():
-    response = steam_api.call('ISteamWebAPIUtil.GetSupportedAPIList')
-    interfaces: list = steam_api.interfaces
-    logging.info(', '.join([str(i.doc()) for i in interfaces]))
-    # logging.info([[method.name for method in interface.__iter__()] for interface in interfaces])
-    # response = request_steam_web_api("ISteamWebAPIUtil", "GetSupportedAPIList")
-    return jsonify(response)
-
-
-@swag_from("apps.yaml")
-@app.route('/apps', methods=['GET'])
-# @swag_from('apps.yml')
-def getAppsFromStoreService():
-    response = steam_api.call('IStoreService.GetAppList')
-    return jsonify(response)
 
 
 @app.route('/', methods=['GET'])
@@ -196,34 +197,24 @@ def index():
     return render_template('index.html', secret_key=app.secret_key)
 
 
-@swag_from("catalog.yaml")
+# @swag_from("catalog.yaml")
 @app.route('/catalog', methods=['GET'])
 # @swag_from('catalog.yml')
 def catalog():
-    from sqlalchemy.orm import query
-    games: query.Query = Game.query.all()
-
-    page_format = "json"
-    # page = f"https://api.steampowered.com/ISteamApps/GetAppList/v2/?key={steam_web_api_key}&format={page_format}"
-    # soup = BeautifulSoup(requests.get(page).text, features="html.parser")
-    # games = json.loads(soup.text)['applist']['apps']
-    # response = steam_api.call("ISteamApps.GetAppList", format=page_format)
-    # games = response['applist']['apps']
-    # games = [games[_index] for _index in range(len(games)) if games[_index]["name"]
-    #          and (games[_index]["appid"] in apps)
-    #          ]
-    # games = json.dumps()
+    _games = requests.get(url_for("main-api.catalog", _external=True)).text
+    games = json.loads(_games)["games"]
+    logging.info(games)
     return render_template('catalog.html', games=games, secret_key=app.secret_key)
 
 
-@swag_from("catalog.yaml", methods="GET")
-@app.route('/game/<int:appid>', methods=['GET'])
+# @swag_from("catalog.yaml", methods="GET")
+@app.route('/game/<int:app_id>', methods=['GET'])
 # @swag_from('game.yml')
-def game_page(appid):
-    url = f"https://store.steampowered.com/api/appdetails/?appids={appid}&key={steam_web_api_key}&l=russian"
-    response: dict = webapi.webapi_request(url)
-    game_data_dict = response[f'{appid}']['data']
-    logging.info("Movies: \n" + json.dumps(game_data_dict, indent=2))
+def game_page(app_id, key=steam_web_api_key, l="russian"):
+    _game_data = requests.get(url_for("steam-api.get_app_info", app_id=app_id, key=key, l=l, _external=True)).text
+    game_data_dict = json.loads(_game_data)
+    # logging.info("Movies: \n" + json.dumps(game_data_dict, indent=2))
+    logging.info(game_data_dict)
     game_screenshots = game_data_dict['screenshots']
     # game_trailers = game_data_dict['movies']
     sd = Markup(game_data_dict['short_description'])
@@ -236,16 +227,15 @@ def game_page(appid):
     return make_response(render_template('game-page.html', game=game_data_dict, sd=sd, dd=dd))
 
 
-@swag_from("helper.yaml")
+# @swag_from("helper.yaml")
 @app.route('/helper', methods=['GET', 'POST'])
 # @swag_from('helper.yml')
 def helper():
     return render_template('helper.html', secret_key=app.secret_key)
 
 
-@swag_from("profile.yaml")
 @app.route('/profile', methods=['GET'])
-# @swag_from('profile.yml')
+# @swag_from('profile.yaml')
 def profile():
     # user = get_user_from_db(id)
     return render_template('profile.html', secret_key=app.secret_key)
@@ -257,7 +247,7 @@ def authors():
     return render_template('authors.html', secret_key=app.secret_key)
 
 
-@swag_from("login.yaml", methods=["GET", "POST"])
+# @swag_from("login.yaml", methods=["GET", "POST"])
 @app.route('/login', methods=['GET', 'POST'])
 # @swag_from('login.yml')
 def login123():
@@ -273,7 +263,7 @@ def login123():
     return render_template('login123.html', secret_key=app.secret_key)
 
 
-@swag_from("registrate.yaml")
+# @swag_from("post.yaml")
 @app.route('/registrate', methods=['GET', 'POST'])
 # @swag_from('registrate.yml')
 def registrate():
@@ -292,10 +282,11 @@ def registrate():
     return render_template('registration.html')
 
 
-@swag_from("pass_change.yaml")
+# @swag_from("pass_change.yaml")
 @app.route('/pass-change', methods=['PUT'])
 # @swag_from('pass-change.yml')
 def pass_change():
+    # should be --PUT--
     if request.method == "POST":
         user = User.query.get(current_user.id)
         old_password = request.form['old_password']
@@ -341,6 +332,19 @@ def add_header(response):
 @app.context_processor
 def inject_enumerate():
     return dict(enumerate=enumerate)
+
+
+@app.context_processor
+def slice_text():
+    import textwrap
+    def short_text(_text, _width=80, _placeholder='...'):
+        return textwrap.shorten(text=_text, width=_width, placeholder=_placeholder)
+    return dict(short=short_text)
+
+
+@app.template_filter('reverse')
+def reverse_filter(s):
+    return s[::-1]
 
 
 if __name__ == '__main__':

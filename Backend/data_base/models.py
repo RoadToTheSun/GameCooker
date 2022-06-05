@@ -1,6 +1,51 @@
+from typing import List
+
 from flask_security import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from dataclasses import dataclass
+
+from sqlalchemy.orm import DeclarativeMeta
+import json
+
+
+class OutputMixin(object):
+    RELATIONSHIPS_TO_DICT = False
+
+    def __iter__(self):
+        return self.to_dict().items()
+
+    def to_dict(self, rel=None, backref=None):
+        if rel is None:
+            rel = self.RELATIONSHIPS_TO_DICT
+        res = {column.key: getattr(self, attr)
+               for attr, column in self.__mapper__.c.items()}
+        if rel:
+            for attr, relation in self.__mapper__.relationships.items():
+                # Avoid recursive loop between to tables.
+                if backref == relation.table:
+                    continue
+                value = getattr(self, attr)
+                if value is None:
+                    res[relation.key] = None
+                elif isinstance(value.__class__, DeclarativeMeta):
+                    res[relation.key] = value.to_dict(backref=self.__table__)
+                else:
+                    res[relation.key] = [i.to_dict(backref=self.__table__)
+                                         for i in value]
+        return res
+
+    def to_json(self, rel=None):
+        def extended_encoder(attr_type):
+            from datetime import datetime
+            from uuid import UUID
+            if isinstance(attr_type, datetime):
+                return attr_type.isoformat()
+            if isinstance(attr_type, UUID):
+                return str(attr_type)
+        if rel is None:
+            rel = self.RELATIONSHIPS_TO_DICT
+        return json.dumps(self.to_dict(rel), default=extended_encoder)
+
 
 db = SQLAlchemy()
 
@@ -38,13 +83,16 @@ class Genre(db.Model):
 
 @dataclass
 class Game(db.Model):
+    RELATIONSHIPS_TO_DICT = True
+
     id: int = db.Column(db.Integer, primary_key=True)
     name: str = db.Column(db.String(100), nullable=False)
+    short_description: str = db.Column(db.VARCHAR, nullable=True)
     players_count: int = db.Column(db.Integer, nullable=False)
     price: int = db.Column(db.Integer, nullable=False)
     rating: int = db.Column(db.Integer, nullable=True)
     preview_url: str = db.Column(db.VARCHAR)
-    genres: Genre = db.relationship('Genre', secondary=game_genres, backref=db.backref('users', lazy='dynamic'))
+    genres: List[Genre] = db.relationship('Genre', secondary=game_genres, backref=db.backref('users', lazy='dynamic'))
 
     def __repr__(self):
         return self.name
@@ -52,11 +100,26 @@ class Game(db.Model):
 
 @dataclass
 class User(db.Model, UserMixin):
+    RELATIONSHIPS_TO_DICT = True
+
     id: int = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nickname: str = db.Column(db.String(100))
     login_mail: str = db.Column(db.String(100), unique=True)
     pass_hash: str = db.Column(db.String(255), nullable=False)
-    roles: Role = db.relationship('Role', secondary=roles_users, backref=db.backref('users', lazy='dynamic'))
-    users_rating: Game = db.relationship('Game', secondary=user_games, backref=db.backref('users', lazy='dynamic'))
+    roles: List[Role] = db.relationship('Role', secondary=roles_users, backref=db.backref('users', lazy='dynamic'))
+    users_rating: List[Game] = db.relationship('Game', secondary=user_games, backref=db.backref('users', lazy='dynamic'))
 
+    # def has_role(self, role):
+    #     return self.role in roles_users
+
+    def get_id(self):
+        return self.id
+
+    def hash_password(self):
+        from werkzeug.security import generate_password_hash
+        self.pass_hash = generate_password_hash(self.password)
+
+    def check_password(self, password):
+        from werkzeug.security import check_password_hash
+        return check_password_hash(self.password, password)
 # db.create_all(app.app)

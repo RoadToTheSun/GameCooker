@@ -1,18 +1,5 @@
 paths:
-  /catalog:
-    get:
-      tags:
-      - "game"
-      summary: "Get all available games"
-      description: ""
-      operationId: "get_games"
-      responses:
-        "200":
-          description: "Games are loaded"
-        "500":
-          description: "Server error"
-
-  /game/{id}:
+  /main-api/game/{id}:
     get:
       tags:
         - "game"
@@ -29,5 +16,5 @@ paths:
       parameters:
         - name: id
           in: "path"
-        description: "ID of game"
-        required: true
+          description: "ID of game"
+          required: true
