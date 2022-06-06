@@ -5,10 +5,18 @@
 {% block body_content %}
 
 <form action="/registrate" method="POST" class="registration-form">
-  <h1 class="registration-text1"></h1>
+  <h1 class="registration-text1">Регистрация</h1>
+  <input
+    name="nickname"
+    type="text"
+    placeholder="Никнейм"
+    class="registration-textinput2 input"
+    value=""
+    required
+  />
   <input
     name="login-mail"
-    type="text"
+    type="email"
     placeholder="Email"
     class="registration-textinput input"
     value=""
@@ -27,14 +35,6 @@
     type="password"
     placeholder="Повторно пароль"
     class="registration-textinput1 input"
-    value=""
-    required
-  />
-  <input
-    name="nickname"
-    type="text"
-    placeholder="Никнейм"
-    class="registration-textinput2 input"
     value=""
     required
   />

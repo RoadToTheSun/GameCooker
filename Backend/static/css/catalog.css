@@ -130,10 +130,9 @@
   transform: translateX(5px) translateY(-10px);
   box-shadow: 5px 5px 10px 0px rgba(0, 0, 0, 0.2);
 }
-.game-card-feature-card.is-hidden {
-  display: none !important;
+.game.is-hidden {
+    display: none !important;
 }
-
 .game-card-image {
   width: 230px;
   height: 107.5px;
