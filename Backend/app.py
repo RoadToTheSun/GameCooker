@@ -59,7 +59,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 app.config['SECURITY_PASSWORD_SALT'] = 'salt'
 app.config['SECURITY_PASSWORD_HASH'] = 'bcrypt'
-app.config['SECURITY_LOGIN_USER_TEMPLATE'] = 'security/login123.html'
+app.config['SECURITY_LOGIN_USER_TEMPLATE'] = 'login123.html'
 
 swagger_config = {
     "headers": [
@@ -238,10 +238,11 @@ def registrate():
     if request.method == "POST":
         if request.form['password'] == request.form['password2']:
             user = User(nickname=request.form['nickname'], login_mail=request.form['login-mail'],
-                        pass_hash=generate_password_hash(request.form['password']), active=True)
+                        pass_hash=generate_password_hash(request.form['password']))
             try:
                 db.session.add(user)
                 db.session.commit()
+                flash("Успешно зарегистрировались")
             except:
                 return "Ошибка, проверьте введенные данные"
             return redirect(url_for('login123'))
