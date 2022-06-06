@@ -57,7 +57,7 @@
       </div>
       <div class="pagination">
       {% set start = [1, games.page - 3] | max %}
-      {% set end = [games.page + 3, games.total] | min %}
+      {% set end = [games.page + 3, games.pages] | min %}
       {% for page in range(start, end + 1) %}
           <div class="pagination-navlink button" style="display: inline-block">
           {% if page!=games.page %}
