@@ -7,7 +7,7 @@ from datetime import datetime
 import sqlalchemy.orm
 from jinja2 import Environment
 from sqlalchemy.orm import Query
-from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy, Pagination
 
 import steam.webapi
 # import jwt
@@ -138,43 +138,6 @@ manager.login_message = "Авторизуйтесь для доступа к з�
 manager.login_message_category = "success"
 
 
-@app.before_first_request
-def addSteamGames():
-    import random, csv
-    deleted_rows = Game.query.delete()
-    logging.warning(f"{deleted_rows} ROWS WERE DELETED FROM `GAME`")
-    games: List[Game] = []
-    ids = []
-    players_min_count = []
-    with open(path.join(app.root_path, 'resources', 'games.csv'), 'r') as game_data:
-        for row in csv.reader(game_data):
-            ids.append(int(row[0]))
-            players_min_count.append(int(row[1]))
-    logging.info('GAME IDS TO BE ADDED: ' + ', '.join(map(str, ids)))
-    logging.info('GAME PLAYERS_COUNT TO BE ADDED: ' + ', '.join(map(str, players_min_count)))
-    for step, _id in enumerate(ids):
-        url = f"https://store.steampowered.com/api/appdetails/?appids={_id}&key={steam_web_api_key}&l=russian"
-        response: dict = webapi.webapi_request(url)
-        game_info = response[f'{_id}']['data']
-        name: str = game_info['name']
-        sd: str = Markup(game_info['short_description'])
-        players_count: int = players_min_count[step]
-        price: int = random.randint(0, 1)
-        # rating = None
-        preview_url: str = f"https://steamcdn-a.akamaihd.net/steam/apps/{_id}/header.jpg"
-        game = Game(id=_id, name=name, short_description=sd, players_count=players_count, price=price, preview_url=preview_url)
-        games.append(game)
-    try:
-        db.session.add_all(games)
-        db.session.commit()
-    except Exception as e:
-        logging.exception("AN ERROR OCCURRED WHILE ADDING GAME", exc_info=e)
-    finally:
-        _json: Response = jsonify(Game.query.all())
-        logging.info(_json)
-        return _json
-
-
 @manager.user_loader
 def load_user(user_id):
     return User.query.get(user_id)
@@ -185,7 +148,7 @@ def unauthorized_handler() -> Response:
 
 
 @app.before_first_request
-def create_user():
+def create_tables():
     db.create_all()
     # user_datastore.create_user(email='matt@nobien.net', password='password')
     # db.session.commit()
@@ -201,9 +164,14 @@ def index():
 @app.route('/catalog', methods=['GET'])
 # @swag_from('catalog.yml')
 def catalog():
-    _games = requests.get(url_for("main-api.catalog", _external=True)).text
-    games = json.loads(_games)["games"]
-    logging.info(games)
+    GAMES_PER_PAGE = 8
+    GAMES_PER_PAGE_MAX = 24
+    page = request.args.get('page', 1, int)
+    games: Pagination = Game.query.paginate(page=page, error_out=True, per_page=GAMES_PER_PAGE, max_per_page=GAMES_PER_PAGE_MAX)
+    # json_games = requests.get(url_for("main-api.catalog", page=page, _external=True)).json()
+    # games_dict: Dict[dict] = json_games["games"]
+    # logging.info(games_dict)
+
     return render_template('catalog.html', games=games, secret_key=app.secret_key)
 
 

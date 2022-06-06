@@ -23,7 +23,8 @@
     <div class="catalog-catalog">
       <h1 class="catalog-text1">Каталог</h1>
       <div class="catalog-container4">
-        {% for game in games.values() %}
+      <!-- Games is a `Paginate` object -->
+        {% for game in games.items %}
             <div>
             <a href="{{ url_for("game_page", app_id=game.id) }}" style="width: min-content">
                 <div class="game-card-feature-card">
@@ -40,12 +41,12 @@
                     <div class="game-card-text">
                         <span class="game-name">{{ game.name }}</span>
                     </div>
-                    <div class="game-card-text">
-                        <span class="game-name">{{ game.price }}</span>
-                    </div>
-                    <div class="game-card-text">
-                        <span class="game-name">{{ game.players_count }}</span>
-                    </div>
+{#                    <div class="game-card-text">#}
+{#                        <span class="game-name">{{ game.price }}</span>#}
+{#                    </div>#}
+{#                    <div class="game-card-text">#}
+{#                        <span class="game-name">{{ game.players_count }}</span>#}
+{#                    </div>#}
                     <div class="game-card-text">
                         <span class="game-name">{{ short(game.short_description, 100) }}</span>
                     </div>
@@ -53,6 +54,19 @@
             </a>
             </div>
         {% endfor %}
+      </div>
+      <div class="pagination">
+      {% set start = [1, games.page - 3] | max %}
+      {% set end = [games.page + 3, games.total] | min %}
+      {% for page in range(start, end + 1) %}
+          <div class="pagination-navlink button" style="display: inline-block">
+          {% if page!=games.page %}
+            <a href="{{ url_for('catalog', page=page) }}">{{ page }}</a>
+          {% else %}
+            {{ page }}
+          {% endif %}
+          </div>
+      {% endfor %}
       </div>
     </div>
     <script async src="{{ url_for('static', filename='js/simpleSearch.js') }}"></script>

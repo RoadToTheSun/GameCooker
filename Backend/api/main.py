@@ -1,5 +1,6 @@
 import dataclasses
 import sqlite3
+from os import path
 
 import requests
 import sqlalchemy
@@ -17,27 +18,90 @@ api_main = Blueprint('main-api', __name__, url_prefix='main-api')
 
 
 class GamesAPI(MethodView):
-    # @swag_from("swagger/catalog/get.yaml", )
-    # @swag_from("swagger/game/get.yaml", )
-    # @api_main.get("catalog")
-    # @api_main.get("game/<int:id>")
-    def get(self, id=None):
-        from flask_sqlalchemy import orm
-        games = Game.query.all() \
-            if id is None else Game.query.get_or_404(id)
-        games_dict: dict = dict()
-        for i, game in enumerate(games):
-            games_dict[f"game_{i}"] = dataclasses.asdict(game)
-        return jsonify(games=games_dict)
 
-    # def post(self, id):
-    #
-    #     pass
+    def __init__(self) -> None:
+        self.GAMES_PER_PAGE = 8
+        self.GAMES_PER_PAGE_MAX = 24
+        self.SIZE = Game.query.count()
+        print(self.SIZE)
+        super().__init__()
+
+    def get(self, id=None):
+        for k,v in request.args.items():
+            print(f"[{k}: {v}], ")
+        page = request.args.get('page', 1, int)
+        print(f"page = {page}")
+        if id:
+            game = Game.query.get_or_404(id)
+            return jsonify(game=dataclasses.asdict(game)), 200
+        else:
+            from flask_sqlalchemy import Pagination
+            games: Pagination = Game.query.paginate(page=page, per_page=self.GAMES_PER_PAGE, max_per_page=self.GAMES_PER_PAGE_MAX)
+            paginated_games = games.items
+            games_dict = dict()
+            for i, game in enumerate(paginated_games):
+                games_dict[i] = dataclasses.asdict(game)
+        return jsonify(games=games_dict, total=len(games_dict), games_remaining=self.SIZE-len(games_dict)), 200
+
+    def post(self, key=None):
+        """
+        `steam_web_api_key`: NEED TO GRAB IT FROM HEADER or QUERY;
+
+        :param key: steam_web_api_key
+        :returns: list[dict]
+        """
+        # @app.before_first_request
+        def addSteamGames():
+            import random, csv
+            from markupsafe import Markup
+            from steam import webapi
+            from Backend.app import app
+            from Backend.app import steam_web_api_key
+
+            deleted_rows = Game.query.delete()
+            logging.warning(f"{deleted_rows} ROWS WERE DELETED FROM `GAME`")
+            games: List[Game] = []
+            ids = []
+            players_min_count = []
+            with open(path.join(app.root_path, 'resources', 'games.csv'), 'r') as game_data:
+                for row in csv.reader(game_data):
+                    ids.append(int(row[0]))
+                    players_min_count.append(int(row[1]))
+            logging.info('GAME IDS TO BE ADDED: ' + ', '.join(map(str, ids)))
+            logging.info('GAME PLAYERS_COUNT TO BE ADDED: ' + ', '.join(map(str, players_min_count)))
+            for step, _id in enumerate(ids):
+                url = f"https://store.steampowered.com/api/appdetails/?appids={_id}&key={key}&l=russian"
+                response: dict = webapi.webapi_request(url)
+                game_info = response[f'{_id}']['data']
+                name: str = game_info['name']
+                sd: str = Markup(game_info['short_description'])
+                players_count: int = players_min_count[step]
+                price: int = random.randint(0, 1)
+                # rating = None
+                preview_url: str = f"https://steamcdn-a.akamaihd.net/steam/apps/{_id}/header.jpg"
+                game = Game(id=_id, name=name, short_description=sd, players_count=players_count, price=price,
+                            preview_url=preview_url)
+                games.append(game)
+            try:
+                db.session.add_all(games)
+                db.session.commit()
+            except Exception as e:
+                logging.exception("AN ERROR OCCURRED WHILE ADDING GAME", exc_info=e)
+            finally:
+                uploaded_games = Game.query.all()
+                games_db = dict()
+                for i, game in enumerate(games_db):
+                    games_db[i] = dataclasses.asdict(game)
+                _json = jsonify(total=len(games), games=games_db)
+                logging.info(_json)
+                return _json, 200
+        return addSteamGames()
 
 
 catalog = GamesAPI.as_view("catalog")
 api_main.add_url_rule("/catalog", endpoint="catalog", view_func=catalog, methods=["GET"])
-api_main.add_url_rule("/game/<int:id>", endpoint="game", view_func=catalog, methods=["GET", "POST"])
+api_main.add_url_rule("/catalog/upload", endpoint="catalog", view_func=catalog, methods=["POST"])
+api_main.add_url_rule("/game/<int:id>", endpoint="game", view_func=catalog, methods=["GET"])
 
 
 class HelperAPI(Resource):
@@ -48,14 +112,12 @@ class HelperAPI(Resource):
         min_price = int(request.args.get("min_price"))
         max_price = int(request.args.get("max_price"))
 
-        filtered_games: list = Game.query.all()
-        if players_count or min_price or max_price:
-            if players_count:
-                filtered_games.filter(Game.players_count==players_count)
-            if min_price:
-                filtered_games.filter(Game.price>=min_price)
-            if max_price:
-                filtered_games.filter(Game.price<=max_price)
+        args = dict()
+        for arg in request.args:
+            args[f"{arg}"] = request.args[arg]
+
+        filtered_games: list = Game.query.filter_by(**args).order_by(Game.rating)
+
         # db.Query().join(Game)
         # data = db.session.query(Game)\
         #     .filter(

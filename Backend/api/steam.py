@@ -11,9 +11,6 @@ from steam import webapi
 api_steam = Blueprint('steam-api', __name__)
 
 
-# api = Api(api_steam, "v1", url_part_order="ae")
-
-
 # @swag_from("swagger/apilist/get.yaml", "yaml", endpoint="apilist", methods=["GET"])
 @api_steam.route("/apilist", methods=["GET"])
 def get_supported_steam_api_list():
@@ -29,6 +26,7 @@ def get_supported_steam_api_list():
 def get_apps_from_store_service():
     from Backend.app import steam_api
     response = steam_api.call('IStoreService.GetAppList')
+    # logging.info(response)
     return jsonify(response)
 
 
