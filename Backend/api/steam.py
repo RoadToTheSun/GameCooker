@@ -34,7 +34,7 @@ def get_apps_from_store_service():
 @api_steam.route("/apps/<int:app_id>", methods=["GET"])
 def get_app_info(app_id, key=None, l="russian"):
     # from Backend.app import steam_api, steam_web_api_key
-    url = f"https://store.steampowered.com/api/appdetails/?appids={app_id}&key={key}&l={l}"
+    url = f"https://store.steampowered.com/api/appdetails?appids={app_id}&key={key}&l={l}"
     response: dict = webapi.webapi_request(url)
     game_info = response[f'{app_id}']['data']
     return jsonify(game_info)

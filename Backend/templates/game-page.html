@@ -4,14 +4,30 @@
 
 {% block body_content %}
     <div class="game-page-container3 movies-slider">
-        <div class="game-screenshots">
-        {% for screen in game.screenshots %}
-            <img
-                    alt="image"
-                    src="{{ screen.path_thumbnail }}"
-                    class="game-page-image1"
-            />
-        {% endfor %}
+        <div class="game-screenshots-container">
+            <ul class="game-screenshots">
+                {% for n, screen in enumerate(screenshots) %}
+                    <li id="slide{{ n }}">
+                        <img
+                            alt="screen{{ n }}"
+                            src="{{ screen.path_thumbnail }}"
+{#                            class="game-page-image1"#}
+                        />
+                    </li>
+                {% endfor %}
+            </ul>
+            <ul class="game-screenshots-thumbnails">
+                {% for n, screen in enumerate(screenshots) %}
+                    <li id="slide{{ n }}">
+                        <a href="#slide{{ n }}">
+                            <img
+                            alt="sketch{{ n }}"
+                            src="{{ screen.path_thumbnail }}"
+                            />
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
         </div>
         <div class="game-trailers">
         {% if game.movies %}

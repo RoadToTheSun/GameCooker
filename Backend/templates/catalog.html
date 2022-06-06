@@ -8,6 +8,7 @@
       placeholder="Введите название игры"
       class="catalog-textinput input"
       id="searchbox"
+      onkeyup="liveSearch()"
     />
     <div class="catalog-container3">
           <button class="catalog-button button" id="game-genre">Adventure</button>
@@ -39,7 +40,7 @@
                             class="game-card-image"
                     />
                     <div class="game-card-text">
-                        <span class="game-name">{{ game.name|striptags|title }}</span>
+                        <span class="game-name">{{ game.name }}</span>
                     </div>
 {#                    <div class="game-card-text">#}
 {#                        <span class="game-name">{{ game.price }}</span>#}
@@ -48,7 +49,7 @@
 {#                        <span class="game-name">{{ game.players_count }}</span>#}
 {#                    </div>#}
                     <div class="game-card-text">
-                        <span class="game-name">{{ short(game.short_description, 100) }}</span>
+                        <span class="game-name">{{ short(game.short_description, 100)|striptags}}</span>
                     </div>
                 </div>
             </a>

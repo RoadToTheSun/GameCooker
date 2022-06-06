@@ -7,7 +7,8 @@ function liveSearch() {
     //Use innerText if all contents are visible
     //Use textContent for including hidden elements
     for (var i = 0; i < gameCards.length; i++) {
-        if(gameCards[i].textContent.toLowerCase()
+        var gameName = gameCards[i].getElementsByClassName("game-name")[0].textContent;
+        if(gameName.toLowerCase()
                 .includes(search_query.toLowerCase())) {
             gameCards[i].classList.remove("is-hidden");
         } else {
