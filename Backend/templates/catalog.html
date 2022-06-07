@@ -11,12 +11,12 @@
       onkeyup="liveSearch()"
     />
     <div class="catalog-container3">
-          <button class="catalog-button button" id="game-genre">Adventure</button>
-          <button class="catalog-button button" id="game-genre">FPS</button>
-          <button class="catalog-button button" id="game-genre">MOBA</button>
-          <button class="catalog-button button" id="game-genre">RPG</button>
-          <button class="catalog-button button" id="game-genre">Racing</button>
-          <button class="catalog-button button" id="game-genre">Strategy</button>
+    {% for genre in genres %}
+        <div class="catalog-button button">
+            <input type="checkbox" id="game-genre{{ genre.id }}" value="{{ genre.id }}">
+            <label for="game-genre{{ genre.id }}">{{ genre.name | title }}</label>
+        </div>
+    {% endfor %}
     </div>
     <a href="{{ url_for("helper") }}" class="catalog-navlink2 button">
           Вместо поиска воспользуйтесь помощником

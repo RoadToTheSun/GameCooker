@@ -11,6 +11,7 @@ from flask.views import MethodView
 import logging
 from flasgger import swag_from
 # from flask_jwt_extended import jwt_required, get_jwt_identity
+from typing import Set
 
 from Backend.data_base.models import *
 
@@ -23,11 +24,12 @@ class GamesAPI(MethodView):
         self.GAMES_PER_PAGE = 8
         self.GAMES_PER_PAGE_MAX = 24
         self.SIZE = Game.query.count()
+        self.GENRES: Set[Genre] = set()
         print(self.SIZE)
         super().__init__()
 
     def get(self, id=None):
-        for k,v in request.args.items():
+        for k, v in request.args.items():
             print(f"[{k}: {v}], ")
         page = request.args.get('page', 1, int)
         print(f"page = {page}")
@@ -36,12 +38,13 @@ class GamesAPI(MethodView):
             return jsonify(game=dataclasses.asdict(game)), 200
         else:
             from flask_sqlalchemy import Pagination
-            games: Pagination = Game.query.paginate(page=page, per_page=self.GAMES_PER_PAGE, max_per_page=self.GAMES_PER_PAGE_MAX)
+            games: Pagination = Game.query.paginate(page=page, per_page=self.GAMES_PER_PAGE,
+                                                    max_per_page=self.GAMES_PER_PAGE_MAX)
             paginated_games = games.items
             games_dict = dict()
             for i, game in enumerate(paginated_games):
                 games_dict[i] = dataclasses.asdict(game)
-        return jsonify(games=games_dict, total=len(games_dict), games_remaining=self.SIZE-len(games_dict)), 200
+        return jsonify(games=games_dict, total=len(games_dict), games_remaining=self.SIZE - len(games_dict)), 200
 
     def post(self, key=None):
         """
@@ -50,17 +53,19 @@ class GamesAPI(MethodView):
         :param key: steam_web_api_key
         :returns: list[dict]
         """
+
         # @app.before_first_request
         def addSteamGames():
-            import random, csv
-            from markupsafe import Markup
-            from steam import webapi
+            import csv
             from Backend.app import app
-            from Backend.app import steam_web_api_key
+            from Backend.app import steam_web_api_key as key
 
-            deleted_rows = Game.query.delete()
-            logging.warning(f"{deleted_rows} ROWS WERE DELETED FROM `GAME`")
+            deleted_games = Game.query.delete()
+            deleted_genres = Genre.query.delete()
+            logging.warning(f"{deleted_games} ROWS WERE DELETED FROM `GAME`")
+            logging.warning(f"{deleted_genres} ROWS WERE DELETED FROM `GENRE`")
             games: List[Game] = []
+            # genres: Set[Genre] = set()
             ids = []
             players_min_count = []
             with open(path.join(app.root_path, 'resources', 'games.csv'), 'r') as game_data:
@@ -69,33 +74,74 @@ class GamesAPI(MethodView):
                     players_min_count.append(int(row[1]))
             logging.info('GAME IDS TO BE ADDED: ' + ', '.join(map(str, ids)))
             logging.info('GAME PLAYERS_COUNT TO BE ADDED: ' + ', '.join(map(str, players_min_count)))
-            for step, _id in enumerate(ids):
-                url = f"https://store.steampowered.com/api/appdetails/?appids={_id}&key={key}&l=russian"
-                response: dict = webapi.webapi_request(url)
-                game_info = response[f'{_id}']['data']
-                name: str = game_info['name']
-                sd: str = Markup(game_info['short_description'])
-                players_count: int = players_min_count[step]
-                price: int = random.randint(0, 1)
-                # rating = None
-                preview_url: str = f"https://steamcdn-a.akamaihd.net/steam/apps/{_id}/header.jpg"
-                game = Game(id=_id, name=name, short_description=sd, players_count=players_count, price=price,
-                            preview_url=preview_url)
+            for players, app_id in zip(players_min_count, ids):
+                game, curr_game_genres = self.load_game_from_steam(app_id, players, key)
                 games.append(game)
+
+                logging.info(f"GAME: {game}")
+                logging.info(f"CURR_GENRES: {curr_game_genres}")
+
+                for genre in curr_game_genres:
+                    # if not self.GENRES.count(_g):
+                    self.GENRES.add(genre)
+                    tmp = list(self.GENRES).count(genre)
+                    if tmp == 0:
+                        logging.info(f"ADDING GENRE: {genre}")
+                        db.session.add(genre)
+                        game.genres.append(genre)
+                        # game_genres.insert(game_id=game.id, genre_id=genre.id)
+                # game.genres = list(curr_game_genres)
+                print(game.genres)
+
             try:
+                logging.info(f"ALL GENRES COUNT: {len(self.GENRES)}")
                 db.session.add_all(games)
+                db.session.add_all(self.GENRES)
                 db.session.commit()
             except Exception as e:
                 logging.exception("AN ERROR OCCURRED WHILE ADDING GAME", exc_info=e)
             finally:
                 uploaded_games = Game.query.all()
-                games_db = dict()
+                games_db = uploaded_games
                 for i, game in enumerate(games_db):
                     games_db[i] = dataclasses.asdict(game)
-                _json = jsonify(total=len(games), games=games_db)
+                _json = jsonify(total=len(games), games=games_db, genres=list(self.GENRES))
                 logging.info(_json)
                 return _json, 200
+
         return addSteamGames()
+
+    def get_genres(self, src: dict):
+        tmp = set()
+        for genre in src:
+            genre_id = int(genre["id"])
+            genre_name = str(genre["description"])
+            _genre = Genre(id=genre_id, name=genre_name)
+            # logging.info((_id, _name))
+            tmp.add(_genre)
+        return tmp
+
+    def load_game_from_steam(self, app_id, players, steam_key, language="russian"):
+        from markupsafe import Markup
+        from steam import webapi
+        url = f"https://store.steampowered.com/api/appdetails/?appids={app_id}&key={steam_key}&l={language}"
+        response: dict = webapi.webapi_request(url)
+        game_info = response[f'{app_id}']['data']
+        name: str = game_info['name']
+        sd: str = Markup(game_info['short_description'])
+        players_count: int = players
+        price: int = int(0 if game_info["is_free"] else 1)
+        rating = int(game_info["metacritic"]["score"] if game_info.get("metacritic") else 0)
+        preview_url: str = f"https://steamcdn-a.akamaihd.net/steam/apps/{app_id}/header.jpg"
+
+        curr_game_genres = self.get_genres(game_info["genres"])
+        logging.info(curr_game_genres)
+        # logging.info(f"CURR GENRES: {curr_game_genres}")
+
+        game = Game(id=app_id, name=name, short_description=sd, players_count=players_count, price=price,
+                    rating=rating, preview_url=preview_url)
+
+        return game, curr_game_genres
 
 
 catalog = GamesAPI.as_view("catalog")
@@ -124,10 +170,10 @@ class HelperAPI(Resource):
         #     Game.price.in_((min_price, max_price)),
         #     Game.players_count == players_count) \
         #     .all()
-            # .filter(
-            # Genre.name.in_(genres)
-            # )\
-            # .all()
+        # .filter(
+        # Genre.name.in_(genres)
+        # )\
+        # .all()
         return jsonify(data=filtered_games), 200
 
     # @swag_from("./swagger/helper/post.yaml")
