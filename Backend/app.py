@@ -6,12 +6,13 @@ from datetime import datetime
 
 import sqlalchemy.orm
 from jinja2 import Environment
+from sqlalchemy import func
 from sqlalchemy.orm import Query
 from flask_sqlalchemy import SQLAlchemy, Pagination
 
 import steam.webapi
 # import jwt
-from flask_login import login_required, logout_user, current_user, login_user, LoginManager
+from flask_login import login_required, logout_user, current_user, login_user, LoginManager, login_manager
 from requests import Response
 from steam import steamid, webauth, webapi
 
@@ -46,9 +47,9 @@ app.config["DEBUG"] = 1
 app.config["APPLICATION_ROOT"] = app.root_path
 app.config['SWAGGER'] = {
     # 'title': 'GameCooker API',
-    # 'doc_dir': './api/swagger/',
+    # 'doc_dir': './restapi/swagger/',
     'uiversion': 3,
-    'doc_dir': f'{path.join(app.root_path, "api", "swagger")}',
+    'doc_dir': f'{path.join(app.root_path, "restapi", "swagger")}',
     # 'endpoint': 'swagger',
     # 'route': '/swagger'
 }
@@ -67,19 +68,19 @@ swagger_config = {
     "specs": [
         {
             "endpoint": 'swagger',
-            "route": '/api',
+            "route": '/restapi',
             # "rule_filter": lambda rule: True,  # all in
             # "model_filter": lambda tag: True,  # all in
         }
     ],
     "static_url_path": "/flasgger_static",
-    # "static_folder": "/api/swagger",  # must be set by user
+    # "static_folder": "/restapi/swagger",  # must be set by user
     "specs_route": "/swagger"
 }
 
 migrate = Migrate(app, db)
 
-# api = Api()
+# restapi = Api()
 db.init_app(app)
 logging.basicConfig(level=logging.DEBUG)
 
@@ -87,15 +88,15 @@ steam_api = WebAPI(
     steam_web_api_key,
     # format="vdf",
 )
-# from api.steam import api_steam
-from api import steam, main
+# from restapi.steam import api_steam
+from restapi import steam_API, main
 
 app.register_blueprint(main.api_main, url_prefix='/main-api')
-app.register_blueprint(steam.api_steam, url_prefix='/steam-api')
+app.register_blueprint(steam_API.api_steam, url_prefix='/steam-api')
 
 swagger = Swagger(
     app,
-    template_file=os.path.join(app.root_path, 'api', 'swagger', 'swagger.yaml'),
+    template_file=os.path.join(app.root_path, 'restapi', 'swagger', 'swagger.yaml'),
     parse=True,
     config=swagger_config
 )
@@ -105,7 +106,9 @@ swagger = Swagger(
 
 class AdminMixin:
     def is_accessible(self):
-        return current_user.has_role('admin')
+        if current_user.is_authenticated:
+            return current_user.has_role('admin')
+        return
 
     def inaccessible_callback(self, name, **kwargs):
         # localhost/admin -> login
@@ -121,8 +124,9 @@ class HomeAdminView(AdminMixin, AdminIndexView):
 
 # db.create_all()
 
+
 # Admin
-admin = Admin(app, 'Game-Cooker', url='/login123', index_view=HomeAdminView(name='Home'))
+admin = Admin(app, 'GameCooker', url='/login123', index_view=HomeAdminView(name='Home'))
 admin.add_view(AdminView(User, db.session))
 admin.add_view(AdminView(Role, db.session))
 admin.add_view(AdminView(Game, db.session))
@@ -132,15 +136,14 @@ user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(app, user_datastore)
 
 manager = LoginManager(app)
-manager.session_protection = "strong"
-manager.login_view = "index"
-manager.login_message = "Авторизуйтесь для доступа к закрытым страницам"
-manager.login_message_category = "success"
+login_manager = LoginManager(app)
+login_manager.login_view = 'login123'
+login_manager.login_message = 'Войдите, чтобы попасть на эту страницу'
 
 
-@manager.user_loader
+@login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(user_id)
+    return db.session.query(User).get(user_id)
 
 
 def unauthorized_handler() -> Response:
@@ -168,7 +171,7 @@ def catalog():
     GAMES_PER_PAGE_MAX = 24
     page = request.args.get('page', 1, int)
     games: Pagination = Game.query.paginate(page=page, error_out=True, per_page=GAMES_PER_PAGE, max_per_page=GAMES_PER_PAGE_MAX)
-    # json_games = requests.get(url_for("main-api.catalog", page=page, _external=True)).json()
+    # json_games = requests.get(url_for("main-restapi.catalog", page=page, _external=True)).json()
     # games_dict: Dict[dict] = json_games["games"]
     # logging.info(games_dict)
 
@@ -179,7 +182,7 @@ def catalog():
 @app.route('/game/<int:app_id>', methods=['GET'])
 # @swag_from('game.yml')
 def game_page(app_id, key=steam_web_api_key, l="russian"):
-    _game_data = requests.get(url_for("steam-api.get_app_info", app_id=app_id, key=key, l=l, _external=True)).text
+    _game_data = requests.get(url_for("steam-restapi.get_app_info", app_id=app_id, key=key, l=l, _external=True)).text
     game_data_dict = json.loads(_game_data)
     # logging.info("Movies: \n" + json.dumps(game_data_dict, indent=2))
     logging.info(game_data_dict)
@@ -197,12 +200,36 @@ def game_page(app_id, key=steam_web_api_key, l="russian"):
 
 # @swag_from("helper.yaml")
 @app.route('/helper', methods=['GET', 'POST'])
+@login_required
 # @swag_from('helper.yml')
 def helper():
-    return render_template('helper.html', secret_key=app.secret_key)
+    all_genres = Genre.query.all()
+    if request.method == "GET":
+        genres_of_games = request.args.getlist('genres')
+        genres_of_games.sort()
+        gamers = request.args.get('gamers')
+        cost = request.args.get('cost')
+        all_games = Game.query.all()
+        max_players = db.session.query(func.max(Game.players_count)).one()[0]
+        games = []
+        for game in all_games:
+            temp_list = []
+            checker = False
+            for el in game.genres:
+                temp_list.append(el.id)
+            if len(genres_of_games) == len(temp_list):
+                for i in range(len(genres_of_games)):
+                    if int(genres_of_games[i]) == temp_list[i]:
+                        checker = True
+            if checker and int(gamers) <= game.players_count and int(cost) == game.price:
+                games.append(game)
+        return render_template('helper.html', genres=all_genres, games=games, max_players=max_players)
+
+    return render_template('helper.html', genres=all_genres)
 
 
 @app.route('/profile', methods=['GET'])
+@login_required
 # @swag_from('profile.yaml')
 def profile():
     # user = get_user_from_db(id)
@@ -216,17 +243,19 @@ def authors():
 
 
 # @swag_from("login.yaml", methods=["GET", "POST"])
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login123', methods=['GET', 'POST'])
 # @swag_from('login.yml')
 def login123():
+    if current_user.is_authenticated:
+        return redirect(url_for('admin'))
     if request.method == "POST":
         email = request.form['login-mail']
         password = request.form['password']
         user = User.query.filter_by(login_mail=email).first()
         if not user or not check_password_hash(user.pass_hash, password):
             flash('Please check your login details and try again.')
-            return redirect(url_for('profile'))
         login_user(user)
+        return redirect(url_for('profile'))
     # if the above check passes, then we know the user has the right credentials
     return render_template('login123.html', secret_key=app.secret_key)
 
@@ -238,7 +267,7 @@ def registrate():
     if request.method == "POST":
         if request.form['password'] == request.form['password2']:
             user = User(nickname=request.form['nickname'], login_mail=request.form['login-mail'],
-                        pass_hash=generate_password_hash(request.form['password']))
+                        pass_hash=generate_password_hash(request.form['password']), active=True)
             try:
                 db.session.add(user)
                 db.session.commit()
@@ -252,7 +281,8 @@ def registrate():
 
 
 # @swag_from("pass_change.yaml")
-@app.route('/pass-change', methods=['PUT'])
+@app.route('/pass-change', methods=['GET', 'POST'])
+@login_required
 # @swag_from('pass-change.yml')
 def pass_change():
     # should be --PUT--
@@ -274,6 +304,12 @@ def pass_change():
 @login_required
 def logout():
     return redirect(url_for('security.logout'))
+
+
+@app.route('/admin')
+@login_required
+def admin():
+    return render_template('admin.html')
 
 
 @app.after_request

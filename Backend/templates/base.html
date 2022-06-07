@@ -108,7 +108,12 @@
                   </div>
               </div>
               <div class="home-btn-group">
+                  {% if not current_user.is_authenticated %}
                   <a href="{{ url_for("login123") }}" class="home-navlink1 button">Вход</a>
+                  {% endif %}
+                  {% if current_user.is_authenticated %}
+                  <a href="{{ url_for("logout") }}" class="home-navlink1 button">Выйти</a>
+                  {% endif %}
               </div>
               <div data-type="BurgerMenu" class="home-burger-menu">
                   <svg viewBox="0 0 1024 1024" class="home-icon">

@@ -129,10 +129,7 @@ class User(db.Model, UserMixin):
     roles = db.relationship('Role', secondary=roles_users, backref=db.backref('users', lazy='dynamic'))
     users_rating = db.relationship('Game', secondary=user_games,
                                    backref=db.backref('users', lazy='dynamic'))
-
-    @property
-    def is_active(self):
-        return self.is_active()
+    active: bool = db.Column(db.Boolean)
 
     # def has_role(self, role):
     #     return self.role in roles_users

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "game-genres-template.html" import print_game_genres_with_chekboxes %}
 
 {% block title %}Helper{% endblock %}
 
@@ -6,55 +7,66 @@
 <h1 class="helper-text1">
   Выберете жанр, количество игроков и стоимость игры
 </h1>
-    <form class="helper-form" name="helper-form" action="{{ url_for("helper") }}" method="POST">
-        <div class="helper-container3">
-            <button class="helper-button button" name="game-genre">Adventure</button>
-            <button class="helper-button1 button" name="game-genre">FPS</button>
-            <button class="helper-button2 button" name="game-genre">MOBA</button>
-            <button class="helper-button3 button" name="game-genre">RPG</button>
-            <button class="helper-button4 button" name="game-genre">Racing</button>
-            <button class="helper-button5 button" name="game-genre">Strategy</button>
-        </div>
+    <form class="helper-form" name="helper-form" action="{{ url_for("helper") }}" method="GET">
+        {{ print_game_genres_with_chekboxes(genres) }}
         <div class="helper-container4">
             <div class="helper-container5">
                 <span class="helper-text2">Игроки</span>
-                <select class="helper-select">
-                    <option value="2" selected>2</option>
-                    <option value="3">3</option>
-                    <option value="4+">4+</option>
+                <select name="gamers" class="helper-select">
+                    {% for i in range(max_players) %}
+                    <option value={{ i + 1 }}>{{ i + 1 }}</option>
+                    {% endfor %}
                 </select>
             </div>
+
             <div class="helper-container6">
                 <span class="helper-text3">Стоимость</span>
-                <select class="helper-select1">
-                    <option value="free" selected>Бесплатная</option>
-                    <option value="cost">Платная</option>
+                <select name="cost" class="helper-select1">
+                    <option value="0" selected>Бесплатная</option>
+                    <option value="1">Платная</option>
                 </select>
             </div>
         </div>
         <input class="home-navlink1 button" type="submit" onclick="searchForGames();" name="helper-search" value="Find my game" style="width: inherit">
-        <div class="catalog-container4" id="search-results">
-        {% for game in games %}
-            <div class="game-card-feature-card">
-                <div class="game-card-text"><span>{{ game.appid }}</span></div>
-                <a href="{{ url_for("game_page", appid=game.appid) }}">
-                    <img
-                        alt="image"
-                        src="{{ url_for("static", filename="img/empty-300w.jpg") }}"
-                        class="game-card-image"
-                    />
-                </a>
-                <div class="game-card-text">
-                    <span class="game-name">{{ game.name }}</span>
-                </div>
-            </div>
-        {% endfor %}
-      </div>
     </form>
+        <div class="catalog-container4">
+<!--            {% if games | count != 0 %}-->
+                {% for game in games %}
+                <div class="game">
+            <a href="{{ url_for("game_page", app_id=game.id) }}" style="width: min-content">
+                <div class="game-card-feature-card">
+                    <div class="game-card-text"><span>{{ game.id }}</span></div>
+                    <img
+                            alt="image"
+                            {% if game.preview_url %}
+                            src="{{ game.preview_url }}"
+                            {% else %}
+                            src="{{ url_for("static", filename="img/empty-300w.jpg") }}"
+                            {% endif %}
+                            class="game-card-image"
+                    />
+                    <div class="game-card-text">
+                        <span class="game-name">{{ game.name }}</span>
+                    </div>
+{#                    <div class="game-card-text">#}
+{#                        <span class="game-name">{{ game.price }}</span>#}
+{#                    </div>#}
+{#                    <div class="game-card-text">#}
+{#                        <span class="game-name">{{ game.players_count }}</span>#}
+{#                    </div>#}
+                    <div class="game-card-text">
+                        <span class="game-name">{{ short(game.short_description, 100)|striptags}}</span>
+                    </div>
+                </div>
+            </a>
+            </div>
+                {% endfor %}
+<!--            {% endif %}-->
+        </div>
 {% endblock %}
 
 <script>
     function searchForGames() {
-        
+
     }
 </script>
