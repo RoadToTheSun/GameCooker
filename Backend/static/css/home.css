@@ -1,3 +1,30 @@
+.flask-messages {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+}
+.flash {
+    text-align: center;
+    opacity: 1;
+    z-index: 100;
+    width: 100%;
+    /*position: fixed;*/
+    /*bottom: 0;*/
+    /*left: 0;*/
+}
+.flash .success {
+	border: 1px solid #21DB56;
+	background: #AEFFC5;
+    padding: 10px;
+}
+.flash .error {
+	border: 1px solid #FF4343;
+	background: #FF9C9C;
+    padding: 10px;
+}
+.flash *:hover {
+
+}
 .navigation-links-nav {
   flex: 0 0 auto;
   display: flex;

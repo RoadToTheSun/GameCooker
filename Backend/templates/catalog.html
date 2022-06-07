@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "game-genres-template.html" import print_game_genres_with_chekboxes %}
 
 {% block title %}Catalog{% endblock %}
 
@@ -10,14 +11,7 @@
       id="searchbox"
       onkeyup="liveSearch()"
     />
-    <div class="catalog-container3">
-    {% for genre in genres %}
-        <div class="catalog-button button">
-            <input type="checkbox" id="game-genre{{ genre.id }}" value="{{ genre.id }}">
-            <label for="game-genre{{ genre.id }}">{{ genre.name | title }}</label>
-        </div>
-    {% endfor %}
-    </div>
+    {{ print_game_genres_with_chekboxes(genres) }}
     <a href="{{ url_for("helper") }}" class="catalog-navlink2 button">
           Вместо поиска воспользуйтесь помощником
     </a>
