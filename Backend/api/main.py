@@ -11,7 +11,7 @@ from flask.views import MethodView
 import logging
 from flasgger import swag_from
 # from flask_jwt_extended import jwt_required, get_jwt_identity
-from typing import Set
+from typing import Set, Dict
 
 from Backend.data_base.models import *
 
@@ -24,7 +24,9 @@ class GamesAPI(MethodView):
         self.GAMES_PER_PAGE = 8
         self.GAMES_PER_PAGE_MAX = 24
         self.SIZE = Game.query.count()
+        self.GAMES: List[Game] = list()
         self.GENRES: Set[Genre] = set()
+        self.GAME_GENRES: Dict = dict()
         print(self.SIZE)
         super().__init__()
 
@@ -56,56 +58,76 @@ class GamesAPI(MethodView):
 
         # @app.before_first_request
         def addSteamGames():
+            from sqlalchemy import exc
             import csv
             from Backend.app import app
             from Backend.app import steam_web_api_key as key
-
-            deleted_games = Game.query.delete()
-            deleted_genres = Genre.query.delete()
-            logging.warning(f"{deleted_games} ROWS WERE DELETED FROM `GAME`")
-            logging.warning(f"{deleted_genres} ROWS WERE DELETED FROM `GENRE`")
-            games: List[Game] = []
-            # genres: Set[Genre] = set()
             ids = []
             players_min_count = []
-            with open(path.join(app.root_path, 'resources', 'games.csv'), 'r') as game_data:
-                for row in csv.reader(game_data):
-                    ids.append(int(row[0]))
-                    players_min_count.append(int(row[1]))
-            logging.info('GAME IDS TO BE ADDED: ' + ', '.join(map(str, ids)))
-            logging.info('GAME PLAYERS_COUNT TO BE ADDED: ' + ', '.join(map(str, players_min_count)))
-            for players, app_id in zip(players_min_count, ids):
-                game, curr_game_genres = self.load_game_from_steam(app_id, players, key)
-                games.append(game)
-
-                logging.info(f"GAME: {game}")
-                logging.info(f"CURR_GENRES: {curr_game_genres}")
-
-                for genre in curr_game_genres:
-                    # if not self.GENRES.count(_g):
-                    self.GENRES.add(genre)
-                    tmp = list(self.GENRES).count(genre)
-                    if tmp == 0:
-                        logging.info(f"ADDING GENRE: {genre}")
-                        db.session.add(genre)
-                        game.genres.append(genre)
-                        # game_genres.insert(game_id=game.id, genre_id=genre.id)
-                # game.genres = list(curr_game_genres)
-                print(game.genres)
 
             try:
-                logging.info(f"ALL GENRES COUNT: {len(self.GENRES)}")
-                db.session.add_all(games)
+                with open(path.join(app.root_path, 'resources', 'games.csv'), 'r') as game_data:
+                    for row in csv.reader(game_data):
+                        ids.append(int(row[0]))
+                        players_min_count.append(int(row[1]))
+
+                deleted_games = Game.query.delete()
+                deleted_genres = Genre.query.delete()
+                # logging.warning(f"{deleted_games} ROWS WERE DELETED FROM `GAME`")
+                # logging.warning(f"{deleted_genres} ROWS WERE DELETED FROM `GENRE`")
+                # logging.info('GAME IDS TO BE ADDED: ' + ', '.join(map(str, ids)))
+                # logging.info('GAME PLAYERS_COUNT TO BE ADDED: ' + ', '.join(map(str, players_min_count)))
+
+                for players, app_id in zip(players_min_count, ids):
+                    game, curr_game_genres = self.load_game_from_steam(app_id, players, key)
+
+                    self.GAME_GENRES[f"{app_id}"] = []
+                    for genre in curr_game_genres:
+                        self.GAME_GENRES[f"{app_id}"].append(genre.id)
+                        self.GENRES.add(genre)
+                    self.GAMES.append(game)
+
+                print(self.GAME_GENRES)
+                print(self.GAMES)
+                print(self.GENRES)
+                #     game.genres = list(curr_game_genres)
+                #     db.session.add(game)
+                # db.session.commit()
                 db.session.add_all(self.GENRES)
+                db.session.add_all(self.GAMES)
+
+                # games_db = Game.query.all()
+                # for game_id, genres_ids in self.GAME_GENRES.items():
+                #     game = [game for game in self.GAMES if game.id == game_id][0]
+                #     # game = Game.query.filter_by(id=game_id).first()
+                #     print(f"game from db: {game}\n")
+                #     curr_genres = []
+                #     for genre_id in genres_ids:
+                #         curr_genres.append(Genre.query.get(genre_id))
+                #         # curr_genres.append(g for g in self.GENRES if g.id == genre_id)
+                #         print(f"genre_id for game: {genre_id}")
+                #     game.genres = curr_genres
+                #     print(f"GAME GENRES: {game.genres}")
+                #     db.session.add(game)
+                #     # db.session.add(game)
+                #     for genre_id in genres_ids:
+                #         db.session.add(game_genres(game_id=game_id, genre_id=genre_id))
+                # db.session.add_all(self.GAMES)
                 db.session.commit()
-            except Exception as e:
+
+                logging.info(f"ALL GENRES COUNT: {len(self.GENRES)}")
+                print(self.GAME_GENRES)
+                print(self.GAMES)
+                print(self.GENRES)
+            except exc.SQLAlchemyError as e:
                 logging.exception("AN ERROR OCCURRED WHILE ADDING GAME", exc_info=e)
             finally:
                 uploaded_games = Game.query.all()
+                uploaded_genres = Genre.query.all()
                 games_db = uploaded_games
                 for i, game in enumerate(games_db):
                     games_db[i] = dataclasses.asdict(game)
-                _json = jsonify(total=len(games), games=games_db, genres=list(self.GENRES))
+                _json = jsonify(total=len(uploaded_games), games=uploaded_games, genres=uploaded_genres)
                 logging.info(_json)
                 return _json, 200
 
@@ -154,15 +176,22 @@ class HelperAPI(Resource):
     # @swag_from("swagger/helper/get.yaml", validation=True)
     def get(self):
         genres = request.args.getlist("genres")
-        players_count = int(request.args.get("players_count"))
-        min_price = int(request.args.get("min_price"))
-        max_price = int(request.args.get("max_price"))
+        players_count = request.args.get("players_count")
+        is_free = request.args.get("is_free")
 
         args = dict()
         for arg in request.args:
             args[f"{arg}"] = request.args[arg]
 
-        filtered_games: list = Game.query.filter_by(**args).order_by(Game.rating)
+        # filtered_games: list = Game.query.filter_by(**args).order_by(Game.rating.desc()).all()
+        if hasattr(args, "genres"):
+            delattr(args, "genres")
+        print(args)
+        filtered_games = db.session.query(Game, Genre).join(game_genres).all()
+        # filtered_games = Game.query.select_from(Genre).join(Game.genres)\
+        #     .filter(Game.price==is_free and Game.players_count==players_count)\
+        #     .all()
+        #     .filter_by(Genre.name.ilike("%эк%"))\
 
         # db.Query().join(Game)
         # data = db.session.query(Game)\
@@ -174,7 +203,7 @@ class HelperAPI(Resource):
         # Genre.name.in_(genres)
         # )\
         # .all()
-        return jsonify(data=filtered_games), 200
+        return jsonify(data=filtered_games, total=len(filtered_games)), 200
 
     # @swag_from("./swagger/helper/post.yaml")
     def post(self):
@@ -190,7 +219,7 @@ class ProfileAPI(Resource):
     def get(self, id=None):
         ids = request.args.get("ids", type=list)
         print(ids)
-        users: tuple
+        users: list
         if id and "id" in request.path:
             user = User.query.get_or_404(id)
             return jsonify(user=user), 200
