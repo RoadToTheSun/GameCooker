@@ -4,6 +4,7 @@ from flask_security import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from dataclasses import dataclass
 
+from sqlalchemy import PrimaryKeyConstraint
 from sqlalchemy.orm import DeclarativeMeta
 import json
 
@@ -42,6 +43,7 @@ class OutputMixin(object):
                 return attr_type.isoformat()
             if isinstance(attr_type, UUID):
                 return str(attr_type)
+
         if rel is None:
             rel = self.RELATIONSHIPS_TO_DICT
         return json.dumps(self.to_dict(rel), default=extended_encoder)
@@ -58,7 +60,8 @@ user_games = db.Table('user_games',
                       db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
                       db.Column('game_id', db.Integer(), db.ForeignKey('game.id')),
                       db.Column('user_rating', db.Integer()),
-                      db.Column('favourite', db.Boolean())
+                      db.Column('favourite', db.Boolean()),
+                      PrimaryKeyConstraint('user_id', 'game_id', name='user_games_pk')
                       )
 
 
@@ -71,7 +74,8 @@ class Role(db.Model, UserMixin):
 
 game_genres = db.Table('game_genres',
                        db.Column('game_id', db.Integer(), db.ForeignKey('game.id')),
-                       db.Column('genre_id', db.Integer(), db.ForeignKey('genre.id'))
+                       db.Column('genre_id', db.Integer(), db.ForeignKey('genre.id')),
+                       PrimaryKeyConstraint('game_id', 'genre_id', name='game_genres_pk')
                        )
 
 
@@ -79,6 +83,16 @@ game_genres = db.Table('game_genres',
 class Genre(db.Model):
     id: int = db.Column(db.Integer, primary_key=True)
     name: str = db.Column(db.String(100), nullable=False)
+    # games = db.relationship('Game', secondary=game_genres, backref=db.backref('g_genres', lazy='dynamic'),
+    #                         primaryjoin=id == game_genres.c.genre_id
+    #                         # secondaryjoin=id == game_genres.c.genre_id
+    #                         )
+
+    def __hash__(self):
+        return self.id
+
+    def __lt__(self, other):
+        return self.id < other.id
 
 
 @dataclass
@@ -92,7 +106,13 @@ class Game(db.Model):
     price: int = db.Column(db.Integer, nullable=False)
     rating: int = db.Column(db.Integer, nullable=True)
     preview_url: str = db.Column(db.VARCHAR)
-    genres: List[Genre] = db.relationship('Genre', secondary=game_genres, backref=db.backref('users', lazy='dynamic'))
+    genres = db.relationship('Genre', secondary=game_genres, backref=db.backref('games', lazy='dynamic'),
+                             primaryjoin=id == game_genres.c.game_id
+                             # secondaryjoin=id == game_genres.c.genre_id
+                             )
+
+    def __str__(self):
+        return f"{self.id}, {self.name}, {self.rating}"
 
     def __repr__(self):
         return self.name
@@ -103,11 +123,16 @@ class User(db.Model, UserMixin):
     RELATIONSHIPS_TO_DICT = True
 
     id: int = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    nickname: str = db.Column(db.String(100))
+    nickname: str = db.Column(db.String(100), unique=True)
     login_mail: str = db.Column(db.String(100), unique=True)
     pass_hash: str = db.Column(db.String(255), nullable=False)
-    roles: List[Role] = db.relationship('Role', secondary=roles_users, backref=db.backref('users', lazy='dynamic'))
-    users_rating: List[Game] = db.relationship('Game', secondary=user_games, backref=db.backref('users', lazy='dynamic'))
+    roles = db.relationship('Role', secondary=roles_users, backref=db.backref('users', lazy='dynamic'))
+    users_rating = db.relationship('Game', secondary=user_games,
+                                   backref=db.backref('users', lazy='dynamic'))
+
+    @property
+    def is_active(self):
+        return self.is_active()
 
     # def has_role(self, role):
     #     return self.role in roles_users
