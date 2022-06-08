@@ -17,7 +17,7 @@
 <h2>Команда ТП-6.2.3 - Богословский Артём, Швыденко Олег, Колупанов Саша</h2>
 
 <h3>
-  <a href="https://game-cooker.herokuapp.com/">
+  <a href="https://gamecooker.herokuapp.com/">
   <img src="https://cdn.iconscout.com/icon/free/png-256/heroku-2752161-2284978.png" alt="Trello" width="30" height="30"/>
   Текущий код приложения на хостинге Heroku
 </h3>
