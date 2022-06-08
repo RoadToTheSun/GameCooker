@@ -28,6 +28,11 @@
   <a href="https://youtu.be/8gfknUqxW0w">
   Видео-презентация
 </h3>
+ 
+<h3>
+  <a href="https://youtu.be/7E1MDWmga74">
+  Видео - код + деплой
+</h3>
 
 ---
   
