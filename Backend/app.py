@@ -50,7 +50,7 @@ app.config['SWAGGER'] = {
     # 'title': 'GameCooker API',
     # 'doc_dir': './api/swagger/',
     'uiversion': 3,
-    'doc_dir': f'{path.join(app.root_path, "api", "swagger")}',
+    'doc_dir': f'{path.join(app.root_path, "restapi", "swagger")}',
     # 'endpoint': 'swagger',
     # 'route': '/swagger'
 }
@@ -90,14 +90,14 @@ steam_api = WebAPI(
     # format="vdf",
 )
 # from api.steam import api_steam
-from api import steam, main
+from restapi import steam, main
 
 app.register_blueprint(main.api_main, url_prefix='/main-api')
 app.register_blueprint(steam.api_steam, url_prefix='/steam-api')
 
 swagger = Swagger(
     app,
-    template_file=os.path.join(app.root_path, 'api', 'swagger', 'swagger.yaml'),
+    template_file=os.path.join(app.root_path, 'restapi', 'swagger', 'swagger.yaml'),
     parse=True,
     config=swagger_config
 )
