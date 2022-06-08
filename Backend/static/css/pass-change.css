@@ -109,6 +109,12 @@
   justify-content: space-between;
   background-color: #7D8BF5;
 }
+.pass-change-navlink {
+  display: contents;
+}
+.pass-change-text {
+  text-decoration: none;
+}
 .pass-change-container1 {
   flex: 0 0 auto;
   display: flex;
@@ -127,11 +133,12 @@
   flex-direction: row;
   justify-content: space-between;
 }
-.pass-change-button {
+.pass-change-navlink1 {
   transition: 0.3s;
   border-color: var(--dl-color-gray-700);
+  text-decoration: none;
 }
-.pass-change-button:hover {
+.pass-change-navlink1:hover {
   color: #ffffff;
   font-style: normal;
   font-weight: 700;
@@ -221,7 +228,7 @@
   border-color: var(--dl-color-gray-700);
   margin-right: 40px;
 }
-.pass-change-button1 {
+.pass-change-button {
   flex: 1;
   align-self: flex-start;
   margin-top: var(--dl-space-space-twounits);
@@ -231,7 +238,7 @@
   margin-right: 100px;
   margin-bottom: var(--dl-space-space-twounits);
 }
-.pass-change-button1:hover {
+.pass-change-button:hover {
   color: #ffffff;
   font-style: normal;
   font-weight: 700;
@@ -283,7 +290,7 @@
 .pass-change-icon12:hover {
   fill: #ffffff;
 }
-.pass-change-navlink {
+.pass-change-navlink2 {
   display: contents;
 }
 .pass-change-icon14 {

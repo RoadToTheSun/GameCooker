@@ -1,0 +1,20 @@
+paths:
+  /main-api/game/{id}:
+    get:
+      tags:
+        - "game"
+      summary: "Get game by id"
+      description: "Take a look at the concrete game of catalog"
+      operationId: "get_game"
+      responses:
+        "200":
+          description: "Games are loaded"
+          schema:
+            $ref: "#/definitions/Game"
+        "404":
+          description: "Game with that id not found"
+      parameters:
+        - name: id
+          in: "path"
+          description: "ID of game"
+          required: true

@@ -1,0 +1,26 @@
+paths:
+  /helper:
+    get:
+      tags:
+        - "helper"
+      summary: "Helps to find games"
+      description: "Provides user with the games that suitable for his interests"
+      operationId: "helper_find_game"
+      responses:
+        "200":
+          description: "Suitable games are loaded"
+          schema:
+            $ref: "#/definitions/Game"
+      parameters:
+        - name: category
+          in: "query"
+          description: "Category of game"
+          schema:
+            type: "array"
+          required: false
+        - name: players_count
+          in: "query"
+          description: "Players count"
+        - name: price
+          in: "query"
+          description: "Price of the game"

@@ -1,0 +1,16 @@
+paths:
+  /apilist:
+    get:
+      tags:
+        - "apilist"
+      summary: "Get all available SteamWEB API Interfaces"
+      description: ""
+      operationId: "get_steam_int"
+      produces:
+        - "application/json"
+      responses:
+        "200":
+          description: "Interfaces are loaded"
+        "503":
+          description: "Interfaces are not available"
+  

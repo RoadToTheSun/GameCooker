@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block body_content %}
+
+<form action="/login123" method="POST" class="login-form">
+    <h1 class="login-text1">Авторизация</h1>
+    <input
+      name="login-mail"
+      type="text"
+      placeholder="Логин"
+      class="login-textinput input"
+      value=""
+      required
+    />
+    <input
+      name="password"
+      type="password"
+      placeholder="Пароль"
+      class="login-textinput1 input"
+      value=""
+      required
+    />
+    <input type="submit" class="login-button button" value="Войти">
+    <a href="{{ url_for('registrate') }}" class="login-navlink2">Регистрация</a>
+</form>
+
+{% endblock %}

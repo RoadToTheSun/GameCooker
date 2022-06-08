@@ -8,43 +8,39 @@
       src="https://play.teleporthq.io/static/svg/default-img.svg"
       class="profile-image1"
     />
-    <h1 class="profile-text1">User name</h1>
-    <span class="profile-text2">User Email</span>
-    <a href="{{ url_for("pass_change") }}" class="profile-navlink">Сменить пароль</a>
+    <h1 class="profile-text1">{{ current_user.nickname }}</h1>
+    <span class="profile-text2">{{ current_user.login_mail }}</span>
+    <a href="{{ url_for("pass_change") }}" class="profile-navlink2">Сменить пароль</a>
     <div class="profile-catalog">
       <h1 class="profile-text3">Liked games:</h1>
       <div class="profile-container3">
-        <div class="game-card-feature-card game-card-root-class-name4">
-          <img
-            alt="image"
-            src="../static/img/empty-300w.jpg"
-            class="game-card-image"
-          />
-          <h2 class="game-card-text"><span>Game name</span></h2>
-        </div>
-        <div class="game-card-feature-card game-card-root-class-name5">
-          <img
-            alt="image"
-            src="../static/img/empty-300w.jpg"
-            class="game-card-image"
-          />
-          <h2 class="game-card-text"><span>Game name</span></h2>
-        </div>
-        <div class="game-card-feature-card game-card-root-class-name6">
-          <img
-            alt="image"
-            src="../static/img/empty-300w.jpg"
-            class="game-card-image"
-          />
-          <h2 class="game-card-text"><span>Game name</span></h2>
-        </div>
-        <div class="game-card-feature-card game-card-root-class-name7">
-          <img
-            alt="image"
-            src="../static/img/empty-300w.jpg"
-            class="game-card-image"
-          />
-          <h2 class="game-card-text"><span>Game name</span></h2>
+        <div class="catalog-container4">
+            {#        {% if games | count != 0 %}#}
+            {% for game in games %}
+                <div class="game">
+                    <a href="{{ url_for("game_page", app_id=game.id) }}" style="width: min-content">
+                        <div class="game-card-feature-card">
+                            <div class="game-card-text"><span>{{ game.id }}</span></div>
+                            <img
+                                    alt="image"
+                                    {% if game.preview_url %}
+                                    src="{{ game.preview_url }}"
+                                    {% else %}
+                                    src="{{ url_for("static", filename="img/empty-300w.jpg") }}"
+                                    {% endif %}
+                                    class="game-card-image"
+                            />
+                            <div class="game-card-text">
+                                <span class="game-name">{{ game.name }}</span>
+                            </div>
+                            <div class="game-card-text">
+                                <span class="game-name">{{ short(game.short_description, 100)|striptags }}</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+            {#        {% endif %}#}
         </div>
       </div>
     </div>

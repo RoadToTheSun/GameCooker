@@ -1,0 +1,21 @@
+paths:
+  /pass-change:
+    put:
+      tags:
+        - "user"
+      summary: "Change password for current_user"
+      description: ""
+      operationId: "change_pass"
+      parameters:
+        - name: "password"
+          in: "formData"
+          description: "New password"
+          required: true
+          type: "string"
+      responses:
+        "200":
+          description: "Password updated"
+          schema:
+            $ref: "#/definitions/User"
+        "400":
+          description: "Invalid password supplied"

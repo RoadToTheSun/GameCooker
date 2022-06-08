@@ -87,35 +87,6 @@
   }
 }
 
-.game-card-feature-card {
-  width: 275px;
-  height: 370px;
-  display: flex;
-  padding: var(--dl-space-space-unit);
-  max-width: var(--dl-size-size-maxwidth);
-  box-shadow: 5px 5px 10px 0px rgba(18, 18, 18, 0.1);
-  transition: 0.3s;
-  align-items: flex-start;
-  flex-direction: column;
-  justify-content: flex-start;
-}
-.game-card-feature-card:hover {
-  transform: scale(1.02);
-  box-shadow: 5px 5px 10px 0px rgba(0, 0, 0, 0.2);
-}
-.game-card-image {
-  width: 250px;
-  height: 300px;
-  align-self: center;
-  object-fit: cover;
-  border-radius: var(--dl-radius-radius-radius4);
-}
-.game-card-text {
-  align-self: center;
-  margin-top: var(--dl-space-space-unit);
-  margin-bottom: 0px;
-}
-
 
 
 
@@ -146,6 +117,12 @@
   justify-content: space-between;
   background-color: #7D8BF5;
 }
+.profile-navlink {
+  display: contents;
+}
+.profile-text {
+  text-decoration: none;
+}
 .profile-container1 {
   flex: 0 0 auto;
   display: flex;
@@ -164,11 +141,12 @@
   flex-direction: row;
   justify-content: space-between;
 }
-.profile-button {
+.profile-navlink1 {
   transition: 0.3s;
   border-color: var(--dl-color-gray-700);
+  text-decoration: none;
 }
-.profile-button:hover {
+.profile-navlink1:hover {
   color: #ffffff;
   font-style: normal;
   font-weight: 700;
@@ -245,9 +223,14 @@
 .profile-text2 {
   margin-top: var(--dl-space-space-halfunit);
 }
-.profile-navlink {
+.profile-navlink2 {
   margin-top: var(--dl-space-space-halfunit);
+  transition: 0.3s;
   text-decoration: none;
+}
+.profile-navlink2:hover {
+  font-style: normal;
+  font-weight: 700;
 }
 .profile-catalog {
   width: 100%;
@@ -312,7 +295,7 @@
 .profile-icon12:hover {
   fill: #ffffff;
 }
-.profile-navlink1 {
+.profile-navlink3 {
   display: contents;
 }
 .profile-icon14 {

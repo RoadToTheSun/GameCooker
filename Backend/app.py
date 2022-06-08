@@ -1,84 +1,384 @@
+import locale
 import os
+from os import path
+import json, requests
+from datetime import datetime
 
-from flask import Flask, render_template, jsonify
+import sqlalchemy.orm
+import werkzeug
+from jinja2 import Environment
+from sqlalchemy import func
+from sqlalchemy.orm import Query
+from flask_sqlalchemy import SQLAlchemy, Pagination
+
+import steam.webapi
+# import jwt
+from flask_login import login_required, logout_user, current_user, login_user, LoginManager, login_manager
+from requests import Response
+from steam import steamid, webauth, webapi
+
+import logging
+from steam.steamid import SteamID
+from steam.webapi import WebAPI, WebAPIInterface, WebAPIMethod
+from flask import Flask, render_template, jsonify, Markup, flash, redirect, url_for, request, make_response
 from flask_restful import Api, Resource, abort, reqparse
 from flasgger import Swagger, swag_from
+from typing import List
 
-steam_web_api_key = "71C62A93E943CF496209037648DA088D"
-secret_key = os.urandom(16).hex()
+from werkzeug.exceptions import NotFound, Forbidden, BadRequest, NotImplemented
+from werkzeug.security import check_password_hash, generate_password_hash
+from flask_migrate import Migrate
+from flask_security import UserMixin, RoleMixin, SQLAlchemyUserDatastore, Security
+from flask_admin import Admin, AdminIndexView
+from flask_admin.contrib.sqla import ModelView
+from data_base.models import *
+# from Backend.user import User
+from flask_security.utils import hash_password
 
-app = Flask(__name__)
-app.config["SECRET_KEY"] = secret_key
+parent_dir = path.dirname(path.abspath(__file__))
+steam_web_api_key: str
+with open(path.join(parent_dir, 'steam_key.txt')) as file:
+    steam_web_api_key = file.read()
+# with open(path.join(app.root_path, 'steam_key.txt')) as file:
+#     steam_web_api_key = file.read()
+steam_id = SteamID(76561198273560595)
+
+app = Flask(__name__, template_folder='templates')
 app.config["DEBUG"] = 1
+app.config["APPLICATION_ROOT"] = app.root_path
 app.config['SWAGGER'] = {
-    'title': 'Flasgger RESTful',
-    # 'uiversion': 2,
-    'specs_route': '/swagger/'
+    # 'title': 'GameCooker API',
+    # 'doc_dir': './api/swagger/',
+    'uiversion': 3,
+    'doc_dir': f'{path.join(app.root_path, "restapi", "swagger")}',
+    # 'endpoint': 'swagger',
+    # 'route': '/swagger'
+}
+print(app.config)
+app.secret_key = os.urandom(16).hex()
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///gameCooker.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+app.config['SECURITY_PASSWORD_SALT'] = 'salt'
+app.config['SECURITY_PASSWORD_HASH'] = 'bcrypt'
+app.config['SECURITY_LOGIN_USER_TEMPLATE'] = 'login123.html'
+
+swagger_config = {
+    "headers": [
+    ],
+    "specs": [
+        {
+            "endpoint": 'swagger',
+            "route": '/api',
+            # "rule_filter": lambda rule: True,  # all in
+            # "model_filter": lambda tag: True,  # all in
+        }
+    ],
+    "static_url_path": "/flasgger_static",
+    # "static_folder": "/api/swagger",  # must be set by user
+    "specs_route": "/swagger"
 }
 
-api = Api(app)
-swagger = Swagger(app)
+migrate = Migrate(app, db)
+
+# api = Api()
+db.init_app(app)
+logging.basicConfig(level=logging.DEBUG)
+
+steam_api = WebAPI(
+    steam_web_api_key,
+    # format="vdf",
+)
+# from api.steam import api_steam
+from restapi import steam, main
+
+app.register_blueprint(main.api_main, url_prefix='/main-api')
+app.register_blueprint(steam.api_steam, url_prefix='/steam-api')
+
+swagger = Swagger(
+    app,
+    template_file=os.path.join(app.root_path, 'restapi', 'swagger', 'swagger.yaml'),
+    parse=True,
+    config=swagger_config
+)
+# print(swagger.template_file)
+# print(f"URL_MAP: {app.url_map}")
 
 
-@app.route('/api/<string:language>/', methods=['GET'])
-@swag_from('test.yml')
-def test(language):
-    return jsonify(language=language)
+class AdminMixin:
+    def is_accessible(self):
+        if current_user.is_authenticated:
+            return current_user.has_role('admin')
+        return
+
+    def inaccessible_callback(self, name, **kwargs):
+        # localhost/admin -> login
+        return redirect(url_for('login123', next=request.url))
+
+
+class AdminView(AdminMixin, ModelView):
+    pass
+
+
+class HomeAdminView(AdminMixin, AdminIndexView):
+    pass
+
+# db.create_all()
+
+
+# Admin
+admin = Admin(app, 'GameCooker', url='/login123', index_view=HomeAdminView(name='Home'))
+admin.add_view(AdminView(User, db.session))
+admin.add_view(AdminView(Role, db.session))
+admin.add_view(AdminView(Game, db.session))
+admin.add_view(AdminView(Genre, db.session))
+# Flask-Security
+user_datastore = SQLAlchemyUserDatastore(db, User, Role)
+security = Security(app, user_datastore)
+
+manager = LoginManager(app)
+manager.login_view = "login123"
+manager.login_message = "Авторизуйтесь для доступа к закрытым страницам"
+manager.session_protection = "strong"
+manager.login_message_category = "success"
+
+
+@manager.user_loader
+def load_user(user_id):
+    return User.query.get(user_id)
+
+
+def unauthorized_handler() -> Response:
+    return redirect(url_for("login123"))
+
+
+@app.before_first_request
+def create_tables():
+    db.create_all()
+    # user_datastore.create_user(email='matt@nobien.net', password='password')
+    # db.session.commit()
 
 
 @app.route('/', methods=['GET'])
-# @swag_from('test.yml')
+# @swag_from('home.yml')
 def index():
     return render_template('index.html', secret_key=app.secret_key)
 
 
+# @swag_from("catalog.yaml")
 @app.route('/catalog', methods=['GET'])
-# @swag_from('test.yml')
+# @swag_from('catalog.yml')
 def catalog():
-    return render_template('catalog.html', secret_key=app.secret_key)
+    GAMES_PER_PAGE = 8
+    GAMES_PER_PAGE_MAX = 24
+    page = request.args.get('page', 1, int)
+    ids = request.args.getlist("ids")
+
+    games: Pagination = Game.query.paginate(page=page, error_out=True, per_page=GAMES_PER_PAGE, max_per_page=GAMES_PER_PAGE_MAX)
+    if ids:
+        games = games.query.filter_by(Game.id.in_(ids)).all()
+    genres = Genre.query.all()
+    # json_games = requests.get(url_for("main-api.catalog", page=page, _external=True)).json()
+    # games_dict: Dict[dict] = json_games["games"]
+    # logging.info(games_dict)
+
+    return render_template('catalog.html', games=games, genres=genres, secret_key=app.secret_key)
 
 
-@app.route('/game-page', methods=['GET'])
-# @swag_from('test.yml')
-def game_page():
-    return render_template('game-page.html', secret_key=app.secret_key)
+# @swag_from("catalog.yaml", methods="GET")
+@app.route('/game/<int:app_id>', methods=['GET', 'POST'])
+# @swag_from('game.yml')
+def game_page(app_id, key=steam_web_api_key, l="russian"):
+
+    _game_data = requests.get(url_for("steam-api.get_app_info", app_id=app_id, key=key, l=l, _external=True)).text
+    game_data_dict = json.loads(_game_data)
+    # logging.info("Movies: \n" + json.dumps(game_data_dict, indent=2))
+    k = Game.query.get(app_id).players_count
+    logging.info(game_data_dict)
+    screens = game_data_dict['screenshots']
+    # game_trailers = game_data_dict['movies']
+    sd = Markup(game_data_dict['short_description'])
+    dd = Markup(game_data_dict['detailed_description'])
+    # If we want just a plain text:
+    # from boltons import strutils
+    # sd = strutils.html2text(game_data_dict['short_description'])
+    # dd = strutils.html2text(game_data_dict['detailed_description'])
+
+    return make_response(render_template('game-page.html', game=game_data_dict, players_count=k, screenshots=screens, sd=sd, dd=dd))
 
 
+# @swag_from("helper.yaml")
 @app.route('/helper', methods=['GET'])
-# @swag_from('test.yml')
+@login_required
+# @swag_from('helper.yml')
 def helper():
-    return render_template('helper.html', secret_key=app.secret_key)
+    all_genres = Genre.query.all()
+    if request.method == "GET":
+        genres_of_games = request.args.getlist('genres')
+        genres_of_games = [int(x) for x in genres_of_games]
+        gamers = request.args.get('gamers')
+        cost = request.args.get('cost')
+        all_games = Game.query.all()
+        max_players = db.session.query(func.max(Game.players_count)).one()[0]
+        games = []
+        for game in all_games:
+            temp_list = []
+            for el in game.genres:
+                temp_list.append(el.id)
+            if len(genres_of_games) != 0:
+                if all(x in temp_list for x in genres_of_games) and int(gamers) <= game.players_count and int(cost) == game.price:
+                    games.append(game)
+        return render_template('helper.html', genres=all_genres, games=games, max_players=max_players)
+
+    return render_template('helper.html', genres=all_genres)
 
 
 @app.route('/profile', methods=['GET'])
-# @swag_from('test.yml')
+@login_required
 def profile():
-    return render_template('profile.html', secret_key=app.secret_key)
+    # user = get_user_from_db(id)
+    games = db.session.query(Game).filter(Game.rating.in_([50, 80])).all()
+    return render_template('profile.html', games=games, secret_key=app.secret_key)
 
 
 @app.route('/authors', methods=['GET'])
-# @swag_from('test.yml')
+# @swag_from('authors.yml')
 def authors():
     return render_template('authors.html', secret_key=app.secret_key)
 
 
-@app.route('/login', methods=['GET'])
-# @swag_from('test.yml')
-def login():
-    return render_template('login.html', secret_key=app.secret_key)
+# @swag_from("login.yaml", methods=["GET", "POST"])
+@app.route('/login123', methods=['GET', 'POST'])
+# @swag_from('login.yml')
+def login123():
+    # if current_user.is_authenticated:
+    #     return redirect(url_for('admin'))
+    if request.method == "POST":
+        # user
+        email = request.form['login-mail']
+        password = request.form['password']
+        user = User.query.filter_by(login_mail=email).first()
+        if not user or not check_password_hash(user.pass_hash, password):
+            flash('Please check your login details and try again.', category="error")
+            return render_template('login123.html', secret_key=app.secret_key)
+        login_user(user, remember=True)
+        return redirect(url_for('profile'))
+    # if the above check passes, then we know the user has the right credentials
+    return render_template('login123.html', secret_key=app.secret_key)
 
 
-@app.route('/registrate', methods=['GET'])
-# @swag_from('test.yml')
+# @swag_from("post.yaml")
+@app.route('/registrate', methods=['GET', 'POST'])
+# @swag_from('registrate.yml')
+@app.route('/registrate', methods=['GET', 'POST'])
+# @swag_from('registrate.yml')
 def registrate():
-    return render_template('registration.html', secret_key=app.secret_key)
+    if request.method == "POST":
+        if request.form['password'] == request.form['password2']:
+            user = User(nickname=request.form['nickname'], login_mail=request.form['login-mail'],
+                        pass_hash=generate_password_hash(request.form['password']), active=True)
+            try:
+                db.session.add(user)
+                db.session.commit()
+                flash("Успешно зарегистрировались", category="success")
+            except Exception as e:
+                flash(e.__repr__(), category="error")
+                render_template('registration.html')
+            return redirect(url_for('login123'))
+        else:
+            flash("Неверно заполнены поля")
+    return render_template('registration.html')
 
 
-@app.route('/pass-change', methods=['GET'])
-# @swag_from('test.yml')
+# @swag_from("pass_change.yaml")
+@app.route('/pass-change', methods=['GET', 'POST'])
+@login_required
+# @swag_from('pass-change.yml')
 def pass_change():
+    # should be --PUT--
+    if request.method == "POST":
+        user = User.query.get(current_user.id)
+        old_password = request.form['old_password']
+        new_password = request.form['new_password']
+        new_password2 = request.form['new_password2']
+        if check_password_hash(user.pass_hash, old_password) and \
+                new_password == new_password2:
+            user.pass_hash = generate_password_hash(new_password)
+            db.session.commit()
+            flash(f"Старый пароль: {old_password}")
+            flash(f"Новый пароль: {user.pass_hash}")
+            return redirect(url_for("login123"))
+        else:
+            flash("Неверно заполнены поля")
     return render_template('pass-change.html', secret_key=app.secret_key)
 
 
+@app.route('/logout')
+@login_required
+def logout():
+    return redirect(url_for('security.logout'))
+
+
+@app.route('/admin')
+@login_required
+def admin():
+    return render_template('admin.html')
+
+
+@app.after_request
+def add_header(response):
+    # response.cache_control.max_age = 1
+    return response
+
+
+# @app.errorhandler(NotFound)
+# def not_found(error):
+#     flash(error, 'error')
+#     code = NotFound.code
+#     message = "Такой страницы не существует"
+#     return render_template('error-handler.html', response=dict({code:message})), 404
+#
+#
+# @app.errorhandler(NotImplemented)
+# def not_implemented(error):
+#     flash(error, 'error')
+#     code = NotImplemented.code
+#     message = "Такой страницы не существует"
+#     return render_template('error-handler.html', response=dict({code:message})), 501
+
+
+@app.context_processor
+def inject_enumerate():
+    return dict(enumerate=enumerate)
+
+
+@app.context_processor
+def slice_text():
+    import textwrap
+    def short_text(_text, _width=80, _placeholder='...'):
+        return textwrap.shorten(text=_text, width=_width, placeholder=_placeholder)
+    return dict(short=short_text)
+
+
+@app.template_filter('reverse')
+def reverse_filter(s):
+    return s[::-1]
+
+
+@app.errorhandler(werkzeug.exceptions.NotFound)
+def not_found(error):
+    flash(error, 'error')
+    return render_template('not_found_404.html', error=error), 404
+
+
+@app.errorhandler(500)
+def special_exception_handler(error):
+    flash(error, 'error')
+    return render_template('index.html', error=error), 500
+
+
 if __name__ == '__main__':
-    app.run()
+    jinja_env = Environment(extensions=['jinja2.ext.loopcontrols'])
+    app.register_error_handler(500, special_exception_handler)
+    app.register_error_handler(404, not_found)
+    app.run(debug=True)

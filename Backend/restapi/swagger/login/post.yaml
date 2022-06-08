@@ -1,0 +1,30 @@
+paths:
+  /login:
+    post:
+      tags:
+        - "user"
+      summary: "Logs user into the system"
+      description: ""
+      operationId: "login_user"
+      produces:
+        - "application/xml"
+        - "application/json"
+      parameters:
+        - name: "login"
+          in: "formData"
+          description: "The user name for login"
+          required: true
+          type: "string"
+        - name: "password"
+          in: "formData"
+          description: "The password for login in"
+          required: true
+          type: "string"
+      responses:
+        "200":
+          description: "User returned"
+          schema:
+            $ref: "#/definitions/User"
+        "400":
+          description: "Invalid username/password supplied"
+  

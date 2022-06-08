@@ -1,0 +1,35 @@
+paths:
+  /apps:
+    get:
+      tags:
+        - "steam"
+      summary: "Get all available Steam apps"
+      description: "Return json of [{appid, appname}] from IStoreService.GetAppList"
+      operationId: "get_steam_apps"
+      produces:
+        - "application/json"
+      responses:
+        "200":
+          description: "Apps are loaded"
+        "503":
+          description: "Steam WEB API isn`t available"
+
+  /apps/{id}:
+    get:
+      tags:
+        - "steam"
+      summary: "Get info about app by given id"
+      description: "Return a json from url"
+      operationId: "get_steam_app_info"
+      responses:
+        "200":
+          description: "App info is OK"
+          schema:
+            $ref: "#/definitions/Steam"
+        "404":
+          description: "App with that id not found"
+      parameters:
+        - name: id
+          in: "path"
+          description: "ID of game"
+          required: true

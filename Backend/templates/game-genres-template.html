@@ -1,0 +1,10 @@
+{% macro print_game_genres_with_chekboxes(genres) %}
+<div class="catalog-container3">
+    {% for genre in genres %}
+        <div class="catalog-button button">
+            <input type="checkbox" name="genres" id="game-genre{{ genre.id }}" value="{{ genre.id }}">
+            <label for="game-genre{{ genre.id }}">{{ genre.name | title }}</label>
+        </div>
+    {% endfor %}
+</div>
+{% endmacro %}
