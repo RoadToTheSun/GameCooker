@@ -19,7 +19,7 @@
 <h3>
   <a href="https://gamecooker.herokuapp.com/">
   <img src="https://cdn.iconscout.com/icon/free/png-256/heroku-2752161-2284978.png" alt="Trello" width="30" height="30"/>
-  Текущий код приложения на хостинге Heroku Пользователь Tets@test.ru - test
+  Текущий код приложения на хостинге Heroku Пользователь tets@test.ru - test
 </h3>
   
 ---
