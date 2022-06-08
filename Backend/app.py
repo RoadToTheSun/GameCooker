@@ -261,7 +261,7 @@ def login123():
         if not user or not check_password_hash(user.pass_hash, password):
             flash('Please check your login details and try again.', category="error")
             return render_template('login123.html', secret_key=app.secret_key)
-        login_user(user)
+        login_user(user, remember=True)
         return redirect(url_for('profile'))
     # if the above check passes, then we know the user has the right credentials
     return render_template('login123.html', secret_key=app.secret_key)
@@ -280,7 +280,7 @@ def registrate():
             try:
                 db.session.add(user)
                 db.session.commit()
-                flash("Успешно зарегистрировались")
+                flash("Успешно зарегистрировались", category="success")
             except Exception as e:
                 flash(e.__repr__(), category="error")
                 render_template('registration.html')
