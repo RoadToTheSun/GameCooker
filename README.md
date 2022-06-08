@@ -16,23 +16,19 @@
 
 <h2>Команда ТП-6.2.3 - Богословский Артём, Швыденко Олег, Колупанов Саша</h2>
 
-<h2>
-  <a href="https://github.com/Metra345/GameCooker/tree/develop">
-  Код проекта находится в ветке Develop
-</h2>
-
-<h3>
-  <a href="https://game-cooker.teleporthq.app/">
-  <img src="https://user-images.githubusercontent.com/74101177/166065323-5209ac72-2985-43ed-85c7-27ac0b8e65d2.png" alt="Trello" width="30" height="30"/>
-  Интерактивный дизайн-макет(без БД и Steam WebAPI) by TeleportHQ
-</h3>
- 
 <h3>
   <a href="https://game-cooker.herokuapp.com/">
   <img src="https://cdn.iconscout.com/icon/free/png-256/heroku-2752161-2284978.png" alt="Trello" width="30" height="30"/>
-  Текущий код (из ветки develop) приложения на хостинге Heroku
+  Текущий код приложения на хостинге Heroku
 </h3>
   
+---
+
+<h3>
+  <a href="https://youtu.be/8gfknUqxW0w">
+  Видео-презентация
+</h3>
+
 ---
   
 <p>
@@ -44,15 +40,16 @@
 ---
  
 <p>
-  <a href="https://github.com/Metra345/GameCooker/blob/documentation/Documentation/%D0%9A%D1%83%D1%80%D1%81%D0%BE%D0%B2%D0%BE%D0%B9%20%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%20(%D0%B4%D0%BE%D0%BA%D0%BB%D0%B0%D0%B4-%D0%BE%D1%82%D1%87%D1%91%D1%82).docx">
+  <a href="https://github.com/Metra345/GameCooker/blob/documentation/Documentation/%D0%9A%D1%83%D1%80%D1%81%D0%BE%D0%B2%D0%BE%D0%B9%20%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82.docx">
+   
   <img src="https://cdn-icons-png.flaticon.com/512/281/281760.png" alt="Doc" width="20" height="20"/>
-  Курсовой проект (доклад-отчёт) .docx
+  Курсовой проект .docx
 </p>
  
 <p>
-  <a href="https://github.com/Metra345/GameCooker/blob/documentation/Documentation/%D0%9A%D1%83%D1%80%D1%81%D0%BE%D0%B2%D0%BE%D0%B9%20%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%20(%D0%B4%D0%BE%D0%BA%D0%BB%D0%B0%D0%B4-%D0%BE%D1%82%D1%87%D1%91%D1%82).pdf">
+  <a href="https://github.com/Metra345/GameCooker/blob/documentation/Documentation/%D0%9A%D1%83%D1%80%D1%81%D0%BE%D0%B2%D0%BE%D0%B9%20%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82.pdf">
   <img src="https://cdn-icons-png.flaticon.com/512/337/337946.png" alt="Doc" width="20" height="20"/>
-  Курсовой проект (доклад-отчёт) .pdf
+  Курсовой проект .pdf
 </p>
 
 <p>
@@ -123,4 +120,12 @@
   <a href="https://github.com/Metra345/GameCooker/wiki/%D0%94%D0%B8%D0%B0%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B0-%D1%81%D0%BE%D1%81%D1%82%D0%BE%D1%8F%D0%BD%D0%B8%D0%B9">
   <img src="https://cdn-icons-png.flaticon.com/512/7170/7170247.png" alt="Doc" width="20" height="20"/>
   Диаграмма состояний
+</p>
+ 
+---
+
+<p>
+  <a href="https://game-cooker.teleporthq.app/">
+  <img src="https://user-images.githubusercontent.com/74101177/166065323-5209ac72-2985-43ed-85c7-27ac0b8e65d2.png" alt="Trello" width="20" height="20"/>
+  Интерактивный дизайн-макет(без БД и Steam WebAPI) by TeleportHQ
 </p>
