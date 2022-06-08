@@ -58,13 +58,13 @@
 </p>
 
 <p>
-  <a href="https://github.com/Metra345/GameCooker/blob/main/Documentation/%D0%A2%D0%97.docx">
+  <a href="https://github.com/Metra345/GameCooker/blob/documentation/Documentation/%D0%A2%D0%97.docx">
   <img src="https://cdn-icons-png.flaticon.com/512/281/281760.png" alt="Doc" width="20" height="20"/>
   ТЗ .docx
 </p>
   
 <p>
-  <a href="https://github.com/Metra345/GameCooker/blob/main/Documentation/%D0%A2%D0%97.pdf">
+  <a href="https://github.com/Metra345/GameCooker/blob/documentation/Documentation/%D0%A2%D0%97.pdf">
   <img src="https://cdn-icons-png.flaticon.com/512/337/337946.png" alt="Doc" width="20" height="20"/>
   ТЗ .pdf
 </p>
