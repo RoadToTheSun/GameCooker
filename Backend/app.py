@@ -251,8 +251,8 @@ def authors():
 @app.route('/login123', methods=['GET', 'POST'])
 # @swag_from('login.yml')
 def login123():
-    if current_user.is_authenticated:
-        return redirect(url_for('admin'))
+    # if current_user.is_authenticated:
+    #     return redirect(url_for('admin'))
     if request.method == "POST":
         # user
         email = request.form['login-mail']
