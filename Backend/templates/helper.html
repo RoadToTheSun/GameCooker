@@ -14,7 +14,7 @@
                 <span class="helper-text2">Игроки</span>
                 <select name="gamers" class="helper-select">
                     {% for i in range(max_players) %}
-                    <option value={{ i + 1 }}>{{ i + 1 }}</option>
+                    <option value="{{ i + 1 }}">{{ i + 1 }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -29,44 +29,40 @@
         </div>
         <input class="home-navlink1 button" type="submit" onclick="searchForGames();" name="helper-search" value="Find my game" style="width: inherit">
     </form>
+    <div class="catalog-catalog">
         <div class="catalog-container4">
-<!--            {% if games | count != 0 %}-->
-                {% for game in games %}
+            {#        {% if games | count != 0 %}#}
+            {% for game in games %}
                 <div class="game">
-            <a href="{{ url_for("game_page", app_id=game.id) }}" style="width: min-content">
-                <div class="game-card-feature-card">
-                    <div class="game-card-text"><span>{{ game.id }}</span></div>
-                    <img
-                            alt="image"
-                            {% if game.preview_url %}
-                            src="{{ game.preview_url }}"
-                            {% else %}
-                            src="{{ url_for("static", filename="img/empty-300w.jpg") }}"
-                            {% endif %}
-                            class="game-card-image"
-                    />
-                    <div class="game-card-text">
-                        <span class="game-name">{{ game.name }}</span>
-                    </div>
-{#                    <div class="game-card-text">#}
-{#                        <span class="game-name">{{ game.price }}</span>#}
-{#                    </div>#}
-{#                    <div class="game-card-text">#}
-{#                        <span class="game-name">{{ game.players_count }}</span>#}
-{#                    </div>#}
-                    <div class="game-card-text">
-                        <span class="game-name">{{ short(game.short_description, 100)|striptags}}</span>
-                    </div>
+                    <a href="{{ url_for("game_page", app_id=game.id) }}" style="width: min-content">
+                        <div class="game-card-feature-card">
+                            <div class="game-card-text"><span>{{ game.id }}</span></div>
+                            <img
+                                    alt="image"
+                                    {% if game.preview_url %}
+                                    src="{{ game.preview_url }}"
+                                    {% else %}
+                                    src="{{ url_for("static", filename="img/empty-300w.jpg") }}"
+                                    {% endif %}
+                                    class="game-card-image"
+                            />
+                            <div class="game-card-text">
+                                <span class="game-name">{{ game.name }}</span>
+                            </div>
+                            <div class="game-card-text">
+                                <span class="game-name">{{ short(game.short_description, 100)|striptags }}</span>
+                            </div>
+                        </div>
+                    </a>
                 </div>
-            </a>
-            </div>
-                {% endfor %}
-<!--            {% endif %}-->
+            {% endfor %}
+            {#        {% endif %}#}
         </div>
+    </div>
 {% endblock %}
 
 <script>
     function searchForGames() {
-
+        
     }
 </script>

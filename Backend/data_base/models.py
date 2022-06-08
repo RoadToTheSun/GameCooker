@@ -83,6 +83,7 @@ game_genres = db.Table('game_genres',
 class Genre(db.Model):
     id: int = db.Column(db.Integer, primary_key=True)
     name: str = db.Column(db.String(100), nullable=False)
+
     # games = db.relationship('Game', secondary=game_genres, backref=db.backref('g_genres', lazy='dynamic'),
     #                         primaryjoin=id == game_genres.c.genre_id
     #                         # secondaryjoin=id == game_genres.c.genre_id
@@ -93,6 +94,9 @@ class Genre(db.Model):
 
     def __lt__(self, other):
         return self.id < other.id
+
+    def __eq__(self, other):
+        return self.id == other.id and self.name == other.name
 
 
 @dataclass
@@ -107,7 +111,7 @@ class Game(db.Model):
     rating: int = db.Column(db.Integer, nullable=True)
     preview_url: str = db.Column(db.VARCHAR)
     genres = db.relationship('Genre', secondary=game_genres, backref=db.backref('games', lazy='dynamic'),
-                             primaryjoin=id == game_genres.c.game_id
+                             # primaryjoin=id == game_genres.c.game_id
                              # secondaryjoin=id == game_genres.c.genre_id
                              )
 
@@ -144,4 +148,9 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         from werkzeug.security import check_password_hash
         return check_password_hash(self.password, password)
+
+    def from_dict(self, data, new_user=False):
+        for field in ['nickname', 'login_mail', 'pass_hash']:
+            if field in data:
+                setattr(self, field, data[field])
 # db.create_all(app.app)

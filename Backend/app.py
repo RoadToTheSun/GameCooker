@@ -5,6 +5,7 @@ import json, requests
 from datetime import datetime
 
 import sqlalchemy.orm
+import werkzeug
 from jinja2 import Environment
 from sqlalchemy import func
 from sqlalchemy.orm import Query
@@ -47,9 +48,9 @@ app.config["DEBUG"] = 1
 app.config["APPLICATION_ROOT"] = app.root_path
 app.config['SWAGGER'] = {
     # 'title': 'GameCooker API',
-    # 'doc_dir': './restapi/swagger/',
+    # 'doc_dir': './api/swagger/',
     'uiversion': 3,
-    'doc_dir': f'{path.join(app.root_path, "restapi", "swagger")}',
+    'doc_dir': f'{path.join(app.root_path, "api", "swagger")}',
     # 'endpoint': 'swagger',
     # 'route': '/swagger'
 }
@@ -68,19 +69,19 @@ swagger_config = {
     "specs": [
         {
             "endpoint": 'swagger',
-            "route": '/restapi',
+            "route": '/api',
             # "rule_filter": lambda rule: True,  # all in
             # "model_filter": lambda tag: True,  # all in
         }
     ],
     "static_url_path": "/flasgger_static",
-    # "static_folder": "/restapi/swagger",  # must be set by user
+    # "static_folder": "/api/swagger",  # must be set by user
     "specs_route": "/swagger"
 }
 
 migrate = Migrate(app, db)
 
-# restapi = Api()
+# api = Api()
 db.init_app(app)
 logging.basicConfig(level=logging.DEBUG)
 
@@ -88,15 +89,15 @@ steam_api = WebAPI(
     steam_web_api_key,
     # format="vdf",
 )
-# from restapi.steam import api_steam
-from restapi import steam_API, main
+# from api.steam import api_steam
+from api import steam, main
 
 app.register_blueprint(main.api_main, url_prefix='/main-api')
-app.register_blueprint(steam_API.api_steam, url_prefix='/steam-api')
+app.register_blueprint(steam.api_steam, url_prefix='/steam-api')
 
 swagger = Swagger(
     app,
-    template_file=os.path.join(app.root_path, 'restapi', 'swagger', 'swagger.yaml'),
+    template_file=os.path.join(app.root_path, 'api', 'swagger', 'swagger.yaml'),
     parse=True,
     config=swagger_config
 )
@@ -136,14 +137,15 @@ user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(app, user_datastore)
 
 manager = LoginManager(app)
-login_manager = LoginManager(app)
-login_manager.login_view = 'login123'
-login_manager.login_message = 'Войдите, чтобы попасть на эту страницу'
+manager.login_view = "login123"
+manager.login_message = "Авторизуйтесь для доступа к закрытым страницам"
+manager.session_protection = "strong"
+manager.login_message_category = "success"
 
 
-@login_manager.user_loader
+@manager.user_loader
 def load_user(user_id):
-    return db.session.query(User).get(user_id)
+    return User.query.get(user_id)
 
 
 def unauthorized_handler() -> Response:
@@ -170,23 +172,30 @@ def catalog():
     GAMES_PER_PAGE = 8
     GAMES_PER_PAGE_MAX = 24
     page = request.args.get('page', 1, int)
+    ids = request.args.getlist("ids")
+
     games: Pagination = Game.query.paginate(page=page, error_out=True, per_page=GAMES_PER_PAGE, max_per_page=GAMES_PER_PAGE_MAX)
-    # json_games = requests.get(url_for("main-restapi.catalog", page=page, _external=True)).json()
+    if ids:
+        games = games.query.filter_by(Game.id.in_(ids)).all()
+    genres = Genre.query.all()
+    # json_games = requests.get(url_for("main-api.catalog", page=page, _external=True)).json()
     # games_dict: Dict[dict] = json_games["games"]
     # logging.info(games_dict)
 
-    return render_template('catalog.html', games=games, secret_key=app.secret_key)
+    return render_template('catalog.html', games=games, genres=genres, secret_key=app.secret_key)
 
 
 # @swag_from("catalog.yaml", methods="GET")
-@app.route('/game/<int:app_id>', methods=['GET'])
+@app.route('/game/<int:app_id>', methods=['GET', 'POST'])
 # @swag_from('game.yml')
 def game_page(app_id, key=steam_web_api_key, l="russian"):
-    _game_data = requests.get(url_for("steam-restapi.get_app_info", app_id=app_id, key=key, l=l, _external=True)).text
+
+    _game_data = requests.get(url_for("steam-api.get_app_info", app_id=app_id, key=key, l=l, _external=True)).text
     game_data_dict = json.loads(_game_data)
     # logging.info("Movies: \n" + json.dumps(game_data_dict, indent=2))
+    k = Game.query.get(app_id).players_count
     logging.info(game_data_dict)
-    game_screenshots = game_data_dict['screenshots']
+    screens = game_data_dict['screenshots']
     # game_trailers = game_data_dict['movies']
     sd = Markup(game_data_dict['short_description'])
     dd = Markup(game_data_dict['detailed_description'])
@@ -194,19 +203,19 @@ def game_page(app_id, key=steam_web_api_key, l="russian"):
     # from boltons import strutils
     # sd = strutils.html2text(game_data_dict['short_description'])
     # dd = strutils.html2text(game_data_dict['detailed_description'])
-    # return json.dumps(game_data_dict, skipkeys=True, ensure_ascii=False)
-    return make_response(render_template('game-page.html', game=game_data_dict, sd=sd, dd=dd))
+
+    return make_response(render_template('game-page.html', game=game_data_dict, players_count=k, screenshots=screens, sd=sd, dd=dd))
 
 
 # @swag_from("helper.yaml")
-@app.route('/helper', methods=['GET', 'POST'])
+@app.route('/helper', methods=['GET'])
 @login_required
 # @swag_from('helper.yml')
 def helper():
     all_genres = Genre.query.all()
     if request.method == "GET":
         genres_of_games = request.args.getlist('genres')
-        genres_of_games.sort()
+        genres_of_games = [int(x) for x in genres_of_games]
         gamers = request.args.get('gamers')
         cost = request.args.get('cost')
         all_games = Game.query.all()
@@ -214,15 +223,11 @@ def helper():
         games = []
         for game in all_games:
             temp_list = []
-            checker = False
             for el in game.genres:
                 temp_list.append(el.id)
-            if len(genres_of_games) == len(temp_list):
-                for i in range(len(genres_of_games)):
-                    if int(genres_of_games[i]) == temp_list[i]:
-                        checker = True
-            if checker and int(gamers) <= game.players_count and int(cost) == game.price:
-                games.append(game)
+            if len(genres_of_games) != 0:
+                if all(x in temp_list for x in genres_of_games) and int(gamers) <= game.players_count and int(cost) == game.price:
+                    games.append(game)
         return render_template('helper.html', genres=all_genres, games=games, max_players=max_players)
 
     return render_template('helper.html', genres=all_genres)
@@ -230,10 +235,10 @@ def helper():
 
 @app.route('/profile', methods=['GET'])
 @login_required
-# @swag_from('profile.yaml')
 def profile():
     # user = get_user_from_db(id)
-    return render_template('profile.html', secret_key=app.secret_key)
+    games = db.session.query(Game).filter(Game.rating.in_([50, 80])).all()
+    return render_template('profile.html', games=games, secret_key=app.secret_key)
 
 
 @app.route('/authors', methods=['GET'])
@@ -249,11 +254,13 @@ def login123():
     if current_user.is_authenticated:
         return redirect(url_for('admin'))
     if request.method == "POST":
+        # user
         email = request.form['login-mail']
         password = request.form['password']
         user = User.query.filter_by(login_mail=email).first()
         if not user or not check_password_hash(user.pass_hash, password):
-            flash('Please check your login details and try again.')
+            flash('Please check your login details and try again.', category="error")
+            return render_template('login123.html', secret_key=app.secret_key)
         login_user(user)
         return redirect(url_for('profile'))
     # if the above check passes, then we know the user has the right credentials
@@ -261,6 +268,8 @@ def login123():
 
 
 # @swag_from("post.yaml")
+@app.route('/registrate', methods=['GET', 'POST'])
+# @swag_from('registrate.yml')
 @app.route('/registrate', methods=['GET', 'POST'])
 # @swag_from('registrate.yml')
 def registrate():
@@ -272,8 +281,9 @@ def registrate():
                 db.session.add(user)
                 db.session.commit()
                 flash("Успешно зарегистрировались")
-            except:
-                return "Ошибка, проверьте введенные данные"
+            except Exception as e:
+                flash(e.__repr__(), category="error")
+                render_template('registration.html')
             return redirect(url_for('login123'))
         else:
             flash("Неверно заполнены поля")
@@ -295,6 +305,9 @@ def pass_change():
                 new_password == new_password2:
             user.pass_hash = generate_password_hash(new_password)
             db.session.commit()
+            flash(f"Старый пароль: {old_password}")
+            flash(f"Новый пароль: {user.pass_hash}")
+            return redirect(url_for("login123"))
         else:
             flash("Неверно заполнены поля")
     return render_template('pass-change.html', secret_key=app.secret_key)
@@ -352,6 +365,20 @@ def reverse_filter(s):
     return s[::-1]
 
 
+@app.errorhandler(werkzeug.exceptions.NotFound)
+def not_found(error):
+    flash(error, 'error')
+    return render_template('not_found_404.html', error=error), 404
+
+
+@app.errorhandler(500)
+def special_exception_handler(error):
+    flash(error, 'error')
+    return render_template('index.html', error=error), 500
+
+
 if __name__ == '__main__':
     jinja_env = Environment(extensions=['jinja2.ext.loopcontrols'])
+    app.register_error_handler(500, special_exception_handler)
+    app.register_error_handler(404, not_found)
     app.run(debug=True)

@@ -216,7 +216,7 @@
   flex-direction: column;
 }
 .catalog-container4#search-results {
-  display: none;
+  /*display: none;*/
 }
 .helper-container3 {
   flex: 0 0 auto;

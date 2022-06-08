@@ -208,8 +208,11 @@ paths:
       produces:
       - "application/json"
       parameters:
-#      - name: genre
-#        in: query
+      - name: genres
+        in: query
+        type: integer
+        description: Ids of genres to folter with
+        collectionFormat: multi
 #        type: array
 #        description: ""
 #        required: true
@@ -219,18 +222,19 @@ paths:
 #          items:
 #            type: string
 #          example: [ "MMO", "RPG", "COOP" ]
-      - name: players_count
+      - name: gamers
         in: "query"
         type: integer
         description: "Players count"
-      - name: min_price
+        required: true
+        default: 1
+      - name: cost
         in: "query"
         type: integer
-        description: "Min price of the game"
-      - name: max_price
-        in: "query"
-        type: integer
-        description: "Max price of the game"
+        description: "Is game free or not (0 - yes, 1 - no)"
+        enum:
+          - 0
+          - 1
       responses:
         "200":
           description: "Suitable games are loaded"
@@ -247,11 +251,9 @@ paths:
       description: "All available users (with optional [id]s)"
       operationId: "get_users"
       parameters:
-        - name: "ids"
-          in: "formData"
-          type: "array"
-          items:
-            type: "integer"
+        - name: "id"
+          in: "query"
+          type: "integer"
           collectionFormat: "multi"
           description: "Id of users"
           required: false
@@ -371,7 +373,7 @@ paths:
         "400":
           description: "Invalid nickname/login/password supplied"
 
-  /pass-change:
+  /main-api/pass-change:
     put:
       tags:
         - "user"
@@ -497,4 +499,18 @@ definitions:
         type: "string"
     xml:
       name: "Role"
+
+  Game_Genres:
+    type: "object"
+    properties:
+      game_id:
+        type: "integer"
+        format: "int64"
+        description: FK to Game
+      genre_id:
+        type: "integer"
+        format: "int32"
+        description: FK to Genre
+    xml:
+      name: "Game_Genres"
 
