@@ -14,12 +14,10 @@
 ![Trello](https://img.shields.io/badge/Trello-%23026AA7.svg?style=flat&logo=Trello&logoColor=white)
 ![Git](https://img.shields.io/badge/git-%23F05033.svg?style=flat&logo=git&logoColor=white)
 
-<h2>Команда ТП-6.2.3 - Богословский Артём, Швыденко Олег, Колупанов Саша</h2>
-
 <h3>
   <a href="https://gamecooker.herokuapp.com/">
   <img src="https://cdn.iconscout.com/icon/free/png-256/heroku-2752161-2284978.png" alt="Trello" width="30" height="30"/>
-  Текущий код приложения на хостинге Heroku / Пользователь для входа test@test.ru - test / для доступа к Swagger дописать /swagger
+  <s>Текущий код приложения на хостинге Heroku / Пользователь для входа test@test.ru - test / для доступа к Swagger дописать /swagger</s>
 </h3>
   
 ---
